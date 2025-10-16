@@ -106,13 +106,12 @@ html,body{
 }
 
 .link--site{
-  --tail-size:var(--logo-base);
+  --logo-size:calc(var(--logo-base) * 2);
+  --tail-size:var(--logo-size);
 }
 
 .link-logo--site{
-  transform:scale(1.1);
-  transform-origin:center bottom;
-  margin-left:-10px;
+  margin-left:calc((var(--logo-base) - var(--logo-size)) / 2);
 }
 
 .link-text{
