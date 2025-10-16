@@ -1,0 +1,71 @@
+/* Шрифт Steppe (локальный файл) */
+@font-face {
+  font-family: "Steppe";
+  src: url("/fonts/Steppe.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Палитра бренда */
+:root{
+  --green-dark:#293321;
+  --olive:#6F7A55;
+  --beige:#A7957C;
+  --bg:#F6EED2;
+  --paper:#F5F1E3;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  padding:0;margin:0;
+  background:var(--bg);
+  color:var(--green-dark);
+  font-family: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.container{
+  max-width:480px; margin:0 auto; padding:28px 18px 36px;
+  text-align:center;
+}
+
+.brand .logo{
+  width:120px; height:auto; border-radius:16px; margin:0 auto 12px;
+  box-shadow:0 2px 10px rgba(41,51,33,.12);
+}
+
+.brand-title{
+  margin:0 0 4px 0;
+  font: 700 28px/1.2 "Steppe", "Montserrat", sans-serif;
+  letter-spacing:.5px;
+}
+
+.brand-sub{
+  margin:0 0 18px 0; color:var(--olive);
+  font-size:14px;
+}
+
+.links{margin-top:4px}
+
+.link{
+  display:block; text-decoration:none; font-weight:600;
+  margin:12px 0; padding:14px 18px; border-radius:14px;
+  background:var(--olive); color:var(--paper);
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+  box-shadow:0 4px 14px rgba(47, 60, 38, .18);
+}
+
+.link:hover{ transform: translateY(-2px); background:var(--beige); }
+
+.contacts{
+  display:flex; flex-direction:column; gap:8px; margin:18px 0 6px;
+}
+
+.contact{
+  color:var(--olive); text-decoration:none; font-size:15px;
+}
+
+.contact:hover{ text-decoration:underline }
+
+.foot{ margin-top:16px; color:var(--olive); font-size:12px }
