@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 40" role="img" aria-labelledby="title">
+  <title>Wildberries</title>
+  <defs>
+    <linearGradient id="wb" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#ff4d8d" />
+      <stop offset="100%" stop-color="#9c27b0" />
+    </linearGradient>
+  </defs>
+  <rect width="140" height="40" rx="10" fill="url(#wb)" />
+  <text x="70" y="26" font-family="'Montserrat', 'Arial Black', sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#ffffff">WB</text>
+</svg>

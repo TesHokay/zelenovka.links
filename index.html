@@ -1,10 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ссылки магазина</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
+    <main class="page">
+        <header class="page__header">
+            <h1 class="page__title">Ссылки на маркетплейсы</h1>
+            <p class="page__subtitle">Выберите платформу, чтобы поделиться товарами</p>
+        </header>
+        <section class="links">
+            <ul class="link-list">
+                <li class="link-item link-item--submenu">
+                    <a class="link-button" href="#" aria-haspopup="true">
+                        <img src="assets/logos/golden-apple.svg" alt="Золотое яблоко" class="link-button__logo">
+                        <span class="link-button__label">Золотое Яблоко</span>
+                    </a>
+                    <div class="submenu" role="menu" aria-label="Золотое Яблоко">
+                        <a href="#" class="submenu__item" role="menuitem">Шампунь</a>
+                        <a href="#" class="submenu__item" role="menuitem">Бальзам для волос</a>
+                        <a href="#" class="submenu__item" role="menuitem">Крем для бритья</a>
+                    </div>
+                </li>
+                <li class="link-item link-item--submenu">
+                    <a class="link-button" href="#" aria-haspopup="true">
+                        <img src="assets/logos/ozon.svg" alt="Ozon" class="link-button__logo">
+                        <span class="link-button__label">Ozon</span>
+                    </a>
+                    <div class="submenu" role="menu" aria-label="Ozon">
+                        <a href="#" class="submenu__item" role="menuitem">Шампунь</a>
+                        <a href="#" class="submenu__item" role="menuitem">Бальзам для волос</a>
+                        <a href="#" class="submenu__item" role="menuitem">Крем для бритья</a>
+                    </div>
+                </li>
+                <li class="link-item link-item--submenu">
+                    <a class="link-button" href="#" aria-haspopup="true">
+                        <img src="assets/logos/wildberries.svg" alt="Wildberries" class="link-button__logo">
+                        <span class="link-button__label">Wildberries</span>
+                    </a>
+                    <div class="submenu" role="menu" aria-label="Wildberries">
+                        <a href="#" class="submenu__item" role="menuitem">Шампунь</a>
+                        <a href="#" class="submenu__item" role="menuitem">Бальзам для волос</a>
+                        <a href="#" class="submenu__item" role="menuitem">Крем для бритья</a>
+                    </div>
+                </li>
+                <li class="link-item">
+                    <a class="link-button" href="#">
+                        <img src="assets/logos/vk.svg" alt="VK" class="link-button__logo">
+                        <span class="link-button__label">VK</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+    </main>
 </body>
 </html>

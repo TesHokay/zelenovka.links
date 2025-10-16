@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" role="img" aria-labelledby="title">
+  <title>VK</title>
+  <rect width="120" height="40" rx="8" fill="#2787f5" />
+  <path d="M28 12h8.4c4.2 0 6.8 2 6.8 5.4 0 2.2-1.6 4.1-3.8 4.6v.2c2.8.3 4.8 2.4 4.8 5.2 0 3.8-2.9 6.6-7.7 6.6H28V12zm7.6 8.2c1.8 0 2.8-.8 2.8-2.2s-1-2.1-2.8-2.1H34v4.3h1.6zm.4 8.8c2 0 3.2-.9 3.2-2.5s-1.2-2.4-3.2-2.4H34V29h2z" fill="#ffffff" />
+  <path d="M60 12h6.6l4.4 6.5L75.2 12H82l-6.2 8.9 7 10.1h-6.8l-4.8-7-4.8 7H60l7-10.1z" fill="#ffffff" />
+</svg>
