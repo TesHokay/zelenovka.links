@@ -48,15 +48,81 @@ html,body{
 
 .links{margin-top:4px}
 
-.link{
-  display:block; text-decoration:none; font-weight:600;
-  margin:12px 0; padding:14px 18px; border-radius:14px;
-  background:var(--olive); color:var(--paper);
-  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
-  box-shadow:0 4px 14px rgba(47, 60, 38, .18);
+.links-list{
+  list-style:none; margin:0; padding:0;
+  display:flex; flex-direction:column; gap:12px;
 }
 
-.link:hover{ transform: translateY(-2px); background:var(--beige); }
+.links-item{ position:relative; }
+
+.link{
+  display:flex; align-items:center; gap:14px;
+  width:100%; text-decoration:none; font-weight:600;
+  padding:14px 18px; border-radius:14px;
+  background:var(--olive); color:var(--paper);
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease, color .15s ease;
+  box-shadow:0 4px 14px rgba(47, 60, 38, .18);
+  border:none; cursor:pointer; text-align:left;
+}
+
+.link:hover{
+  transform: translateY(-2px);
+  background:var(--beige);
+  color:var(--green-dark);
+}
+
+.link:focus-visible{
+  outline:2px solid var(--green-dark);
+  outline-offset:2px;
+}
+
+.link-logo{
+  width:36px; height:36px; border-radius:10px;
+  flex-shrink:0; object-fit:cover;
+}
+
+.link-text{ flex:1; }
+
+.link--button{
+  font-family:inherit;
+  appearance:none;
+}
+
+.link--button,
+.sub-link{
+  font-family:inherit;
+}
+
+.sub-links{
+  display:none; flex-direction:column; gap:8px;
+  margin-top:10px;
+}
+
+.has-sub:hover .sub-links,
+.has-sub:focus-within .sub-links{
+  display:flex;
+}
+
+.sub-link{
+  display:block; width:100%;
+  text-decoration:none; font-weight:500; text-align:left;
+  padding:10px 14px; border-radius:12px;
+  background:var(--paper); color:var(--green-dark);
+  border:1px solid rgba(41,51,33,.12);
+  box-shadow:0 2px 6px rgba(47, 60, 38, .12);
+  transition: transform .15s ease, background .15s ease;
+  cursor:pointer;
+}
+
+.sub-link:hover{
+  transform: translateY(-1px);
+  background:var(--beige);
+}
+
+.sub-link:focus-visible{
+  outline:2px solid var(--olive);
+  outline-offset:2px;
+}
 
 .contacts{
   display:flex; flex-direction:column; gap:8px; margin:18px 0 6px;

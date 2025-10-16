@@ -1,0 +1,7 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title>Wildberries</title>
+  <rect width="64" height="64" rx="16" fill="#A9018E"/>
+  <ellipse cx="22" cy="32" rx="14" ry="12" fill="#F145AA"/>
+  <ellipse cx="42" cy="32" rx="14" ry="12" fill="#F77AC8"/>
+  <path d="M20 25.5h4.1l2.6 6.5 2.6-6.5h4.1L30 38h-3.5l-2.4-6-2.5 6H18l2-12.5z" fill="#fff"/>
+</svg>
