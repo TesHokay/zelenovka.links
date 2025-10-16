@@ -106,8 +106,8 @@ html,body{
 }
 
 .link--site{
-  --logo-size:calc(var(--logo-base) * 2);
-  --tail-size:var(--logo-size);
+  --logo-size:calc(var(--logo-base) * 0.95);
+  --tail-size:calc((var(--logo-base) + var(--logo-size)) / 2);
 }
 
 .link-logo--site{
