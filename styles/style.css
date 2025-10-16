@@ -105,12 +105,13 @@ html,body{
 }
 
 .link--site{
-  --logo-size:68px;
-  --tail-size:var(--logo-size);
+  --logo-size:84px;
+  --tail-size:56px;
 }
 
 .link-logo--site{
   transform:none;
+  margin-left:-6px;
 }
 
 .link-text{
