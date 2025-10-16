@@ -105,12 +105,12 @@ html,body{
 }
 
 .link--site{
-  --tail-size:calc(var(--logo-size) * 2);
+  --logo-size:60px;
+  --tail-size:var(--logo-size);
 }
 
 .link-logo--site{
-  transform:scale(3);
-  transform-origin:center;
+  transform:none;
 }
 
 .link-text{
@@ -185,7 +185,7 @@ html,body{
 .contact{
   color:var(--olive);
   text-decoration:none;
-  font-size:22px;
+  font-size:26px;
   font-weight:600;
   display:flex;
   align-items:center;
@@ -202,4 +202,4 @@ html,body{
   display:block;
 }
 
-.foot{ margin-top:18px; color:var(--olive); font-size:20px; font-weight:600 }
+.foot{ margin-top:18px; color:var(--olive); font-size:24px; font-weight:600 }
