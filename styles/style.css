@@ -36,9 +36,9 @@ html,body{
 }
 
 .brand .logo{
-  width:min(92%, 620px);
+  width:min(100%, 720px);
   height:auto;
-  margin:0 auto 2.5px;
+  margin:0 auto 0;
 }
 
 .brand-sub{
@@ -56,7 +56,8 @@ html,body{
 .links-item{ position:relative; }
 
 .link{
-  --logo-size:56px;
+  --logo-base:56px;
+  --logo-size:var(--logo-base);
   --tail-size:var(--logo-size);
   display:flex;
   align-items:center;
@@ -105,13 +106,13 @@ html,body{
 }
 
 .link--site{
-  --logo-size:84px;
-  --tail-size:56px;
+  --tail-size:var(--logo-base);
 }
 
 .link-logo--site{
-  transform:none;
-  margin-left:-6px;
+  transform:scale(1.1);
+  transform-origin:center bottom;
+  margin-left:-10px;
 }
 
 .link-text{
