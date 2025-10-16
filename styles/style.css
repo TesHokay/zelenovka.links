@@ -36,9 +36,9 @@ html,body{
 }
 
 .brand .logo{
-  width:min(76%, 520px);
+  width:min(92%, 620px);
   height:auto;
-  margin:0 auto 5px;
+  margin:0 auto 2.5px;
 }
 
 .brand-sub{
@@ -105,7 +105,7 @@ html,body{
 }
 
 .link--site{
-  --logo-size:60px;
+  --logo-size:68px;
   --tail-size:var(--logo-size);
 }
 
@@ -137,7 +137,7 @@ html,body{
   transform:translateY(-8px);
   pointer-events:none;
   visibility:hidden;
-  transition:max-height .75s cubic-bezier(.22,.61,.36,1), opacity .65s ease, transform .75s cubic-bezier(.22,.61,.36,1), margin-top .75s cubic-bezier(.22,.61,.36,1), visibility 0s linear .75s;
+  transition:max-height .55s cubic-bezier(.22,.61,.36,1), opacity .45s ease, transform .55s cubic-bezier(.22,.61,.36,1), margin-top .55s cubic-bezier(.22,.61,.36,1), visibility 0s linear .55s;
 }
 
 .has-sub:hover .sub-links,
@@ -148,7 +148,7 @@ html,body{
   transform:translateY(0);
   pointer-events:auto;
   visibility:visible;
-  transition:max-height .75s cubic-bezier(.22,.61,.36,1), opacity .65s ease, transform .75s cubic-bezier(.22,.61,.36,1), margin-top .75s cubic-bezier(.22,.61,.36,1);
+  transition:max-height .55s cubic-bezier(.22,.61,.36,1), opacity .45s ease, transform .55s cubic-bezier(.22,.61,.36,1), margin-top .55s cubic-bezier(.22,.61,.36,1);
 }
 
 .sub-link{
