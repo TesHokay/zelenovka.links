@@ -104,8 +104,9 @@ html,body{
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#F6EED2;
+  background:#FFFFFF;
   border-radius:16px;
+  box-shadow:inset 0 0 0 1px rgba(41,51,33,.04);
 }
 
 .link-logo{
@@ -127,6 +128,20 @@ html,body{
   text-align:center;
 }
 
+.links-item--label{
+  display:flex;
+  justify-content:center;
+  font-weight:600;
+  color:var(--olive);
+}
+
+.links-label{
+  display:block;
+  font-size:18px;
+  line-height:1;
+  padding:2px 0;
+}
+
 .link--button{
   font-family:inherit;
   appearance:none;
@@ -135,6 +150,23 @@ html,body{
 .link--button,
 .sub-link{
   font-family:inherit;
+}
+
+.link--disabled{
+  background:#DBDBDB;
+  color:#777;
+  box-shadow:none;
+  cursor:default;
+  pointer-events:none;
+}
+
+.link--disabled .link-logo{
+  filter:grayscale(1);
+  opacity:.6;
+}
+
+.link--disabled .link-logo-wrap{
+  box-shadow:inset 0 0 0 1px rgba(41,51,33,.08);
 }
 
 .sub-links{
