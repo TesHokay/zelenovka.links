@@ -26,7 +26,7 @@ html,body{
 }
 
 .container{
-  max-width:640px; margin:0 auto; padding:18px 18px 40px;
+  max-width:640px; margin:0 auto; padding:9px 18px 40px;
   text-align:center;
 }
 
@@ -42,11 +42,11 @@ html,body{
 }
 
 .brand-sub{
-  margin:0 0 16px 0; color:var(--olive);
+  margin:0 0 8px 0; color:var(--olive);
   font:600 20px/1.35 "Steppe", "Montserrat", sans-serif;
 }
 
-.links{margin-top:4px}
+.links{margin-top:2px}
 
 .links-list{
   list-style:none; margin:0; padding:0;
@@ -104,7 +104,7 @@ html,body{
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#f5f1e3;
+  background:#F6EED2;
   border-radius:16px;
 }
 
