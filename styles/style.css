@@ -26,7 +26,7 @@ html,body{
 }
 
 .container{
-  max-width:640px; margin:0 auto; padding:9px 18px 40px;
+  max-width:640px; margin:0 auto; padding:3px 18px 40px;
   text-align:center;
 }
 
@@ -42,7 +42,7 @@ html,body{
 }
 
 .brand-sub{
-  margin:0 0 8px 0; color:var(--olive);
+  margin:0 0 3px 0; color:var(--olive);
   font:600 20px/1.35 "Steppe", "Montserrat", sans-serif;
 }
 
