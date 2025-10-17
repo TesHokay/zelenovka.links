@@ -56,9 +56,9 @@ html,body{
 .links-item{ position:relative; }
 
 .link{
-  --logo-base:56px;
-  --logo-size:var(--logo-base);
-  --tail-size:var(--logo-size);
+  --logo-box:60px;
+  --logo-size:38px;
+  --tail-size:var(--logo-box);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -96,26 +96,34 @@ html,body{
   outline-offset:2px;
 }
 
+
+.link-logo-wrap{
+  width:var(--logo-box);
+  height:var(--logo-box);
+  flex:0 0 var(--logo-box);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f5f1e3;
+  border-radius:16px;
+}
+
 .link-logo{
   width:var(--logo-size);
   height:var(--logo-size);
-  border-radius:10px;
-  object-fit:cover;
-  flex-shrink:0;
+  object-fit:contain;
   display:block;
 }
 
 .link--site{
-  --logo-size:calc(var(--logo-base) * 0.95);
-  --tail-size:calc((var(--logo-base) + var(--logo-size)) / 2);
-}
-
-.link-logo--site{
-  margin-left:calc((var(--logo-base) - var(--logo-size)) / 2);
+  --logo-size:38px;
 }
 
 .link-text{
   flex:1 1 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   text-align:center;
 }
 
