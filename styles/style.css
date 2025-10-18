@@ -119,7 +119,13 @@ html,body{
 }
 
 .link--site{
-  --logo-size:38px;
+  --logo-box:76px;
+  --logo-size:52px;
+}
+
+.link-logo--site{
+  width:calc(var(--logo-size) + 6px);
+  height:calc(var(--logo-size) + 6px);
 }
 
 .link-text{
