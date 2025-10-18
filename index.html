@@ -130,5 +130,18 @@
 
   <!-- (опционально) Метрика / GA4 -->
   <!-- Вставишь сюда счётчик позже -->
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var body = document.body;
+      if (body && 'zoom' in body.style) {
+        body.style.zoom = '67%';
+      } else if (body) {
+        body.style.transform = 'scale(0.67)';
+        body.style.transformOrigin = 'top left';
+        document.documentElement.style.overflowX = 'hidden';
+      }
+    });
+  </script>
 </body>
 </html>
