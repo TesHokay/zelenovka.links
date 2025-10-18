@@ -134,13 +134,29 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       var body = document.body;
-      if (body && 'zoom' in body.style) {
-        body.style.zoom = '67%';
-      } else if (body) {
-        body.style.transform = 'scale(0.67)';
-        body.style.transformOrigin = 'top left';
-        document.documentElement.style.overflowX = 'hidden';
+      var root = document.documentElement;
+      var zoomValue = '55%';
+
+      if (root) {
+        root.style.overflowX = 'hidden';
       }
+
+      if (body && 'zoom' in body.style) {
+        body.style.zoom = zoomValue;
+      } else if (body) {
+        body.style.transform = 'scale(0.55)';
+        body.style.transformOrigin = 'top left';
+      }
+
+      requestAnimationFrame(function () {
+        if (root) {
+          root.scrollTop = 0;
+        }
+        if (body) {
+          body.scrollTop = 0;
+        }
+        window.scrollTo(0, 0);
+      });
     });
   </script>
 </body>
