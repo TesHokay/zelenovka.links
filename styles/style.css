@@ -21,12 +21,6 @@ html,body{
   text-align:center;
 }
 
-.container--scaled{
-  transform:scale(.67);
-  transform-origin:top center;
-  margin-top:-80px;
-}
-
 .brand .logo{
   width:min(100%, 720px);
   height:auto;
