@@ -26,7 +26,7 @@ html,body{
 }
 
 .container{
-  max-width:640px; margin:0 auto; padding:0 18px 36px;
+  max-width:640px; margin:0 auto; padding: 8px 18px 36px;
   text-align:center;
 }
 
