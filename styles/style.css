@@ -9,7 +9,10 @@
 
 *{box-sizing:border-box}
 
-html{overflow-x:hidden}
+html{
+  overflow-x:hidden;
+  overflow-y:scroll;
+}
 
 html,body{
   padding:0;margin:0;
@@ -111,12 +114,6 @@ html,body{
   --tail-size:var(--logo-box);
   padding:14px 20px;
   font-size:20px;
-  background:linear-gradient(135deg, #6F7A55 0%, #88986A 100%);
-  box-shadow:0 6px 20px rgba(47, 60, 38, .22);
-}
-
-.link--site:hover{
-  background:linear-gradient(135deg, #A7957C 0%, #C4B68F 100%);
 }
 
 .link--site .link-logo-wrap{
