@@ -37,17 +37,20 @@
 
     <nav class="links" aria-label="Официальные площадки">
       <ul class="links-list">
-        <li class="links-item has-sub">
-          <a class="link" href="https://goldapple.ru/catalogsearch/result?q=зеленовка" target="_blank" rel="noopener">
-            <span class="link-logo-wrap" aria-hidden="true">
-              <img src="/assets/logos/goldapple.svg" alt="" class="link-logo" />
-            </span>
-            <span class="link-text">Золотое Яблоко</span>
-          </a>
-          <div class="sub-links" role="group" aria-label="Золотое яблоко — категории">
-            <button class="sub-link" type="button">Шампунь</button>
-            <button class="sub-link" type="button">Бальзам для волос</button>
-            <button class="sub-link" type="button">Крем для бритья</button>
+        <li class="links-item">
+          <div class="sub-links-group">
+            <div class="sub-links-header">
+              <span class="link-logo-wrap" aria-hidden="true">
+                <img src="/assets/logos/goldapple.svg" alt="" class="link-logo" />
+              </span>
+              <span class="sub-links-title">Золотое Яблоко</span>
+            </div>
+            <div class="sub-links sub-links--visible" role="group" aria-label="Золотое яблоко — категории">
+              <!-- Укажи адрес категории в data-url, например data-url="https://goldapple.ru/catalog/..." -->
+              <button class="sub-link js-open-link" type="button" data-url="">Шампунь</button>
+              <button class="sub-link js-open-link" type="button" data-url="">Бальзам для волос</button>
+              <button class="sub-link js-open-link" type="button" data-url="">Крем для бритья</button>
+            </div>
           </div>
         </li>
         <li class="links-item">
@@ -94,10 +97,18 @@
           </span>
         </li>
         <li class="links-item">
-          <span class="link link--disabled" role="link" aria-disabled="true">
+          <!-- Когда появится ссылка, вставь её в data-url ниже -->
+          <button class="link link--soon js-open-link" type="button" data-url="">
             <span class="link-logo-wrap" aria-hidden="true">
               <img src="/assets/logos/wildberries.svg" alt="" class="link-logo" />
-@@ -102,27 +108,56 @@
+            </span>
+            <span class="link-text">Wildberries</span>
+          </button>
+        </li>
+        <li class="links-item">
+          <span class="link link--disabled" role="link" aria-disabled="true">
+            <span class="link-logo-wrap" aria-hidden="true">
+              <img src="/assets/logos/yandex-market.svg" alt="" class="link-logo" />
             </span>
             <span class="link-text">Яндекс Маркет</span>
           </span>
@@ -149,6 +160,24 @@
           body.scrollTop = 0;
         }
         window.scrollTo(0, 0);
+      });
+
+      var linkButtons = document.querySelectorAll('.js-open-link');
+      linkButtons.forEach(function (button) {
+        var initialUrl = (button.dataset.url || '').trim();
+        if (!initialUrl) {
+          button.setAttribute('aria-disabled', 'true');
+          return;
+        }
+
+        button.removeAttribute('aria-disabled');
+        button.addEventListener('click', function () {
+          var targetUrl = (button.dataset.url || '').trim();
+          if (!targetUrl) {
+            return;
+          }
+          window.open(targetUrl, '_blank', 'noopener');
+        });
       });
     });
   </script>
