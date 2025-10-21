@@ -148,18 +148,73 @@
     document.addEventListener('DOMContentLoaded', function () {
       var body = document.body;
       var root = document.documentElement;
-      var zoomValue = '55%';
+      var defaultScale = 0.55;
+      var mobileScale = 0.45;
+      var mobileQuery = window.matchMedia('(max-width: 600px)');
 
       if (root) {
         root.style.overflowX = 'hidden';
       }
 
-      if (body && 'zoom' in body.style) {
-        body.style.zoom = zoomValue;
-      } else if (body) {
-        body.style.transform = 'scale(0.55)';
-        body.style.transformOrigin = 'top left';
+      function applyScale(scale) {
+        if (!body) {
+          return;
+        }
+
+        var zoomValue = (scale * 100).toFixed(0) + '%';
+
+        if ('zoom' in body.style) {
+          body.style.zoom = zoomValue;
+          body.style.transform = '';
+          body.style.transformOrigin = '';
+        } else {
+          body.style.transform = 'scale(' + scale + ')';
+          body.style.transformOrigin = 'top left';
+        }
       }
+
+      function updateScale() {
+        var scale = mobileQuery.matches ? mobileScale : defaultScale;
+        applyScale(scale);
+      }
+
+      updateScale();
+
+      if (typeof mobileQuery.addEventListener === 'function') {
+        mobileQuery.addEventListener('change', updateScale);
+      } else if (typeof mobileQuery.addListener === 'function') {
+        mobileQuery.addListener(updateScale);
+      }
+
+      try {
+        window.addEventListener('resize', updateScale, { passive: true });
+      } catch (error) {
+        window.addEventListener('resize', updateScale);
+      }
+
+      var subItems = document.querySelectorAll('.links-item.has-sub');
+
+      subItems.forEach(function (item, index) {
+        var trigger = item.querySelector('.link');
+        var subLinks = item.querySelector('.sub-links');
+
+        if (!trigger || !subLinks) {
+          return;
+        }
+
+        if (!subLinks.id) {
+          subLinks.id = 'sub-links-' + (index + 1);
+        }
+
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.setAttribute('aria-controls', subLinks.id);
+
+        trigger.addEventListener('click', function (event) {
+          event.preventDefault();
+          var isOpen = item.classList.toggle('is-open');
+          trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+      });
 
       requestAnimationFrame(function () {
         if (root) {

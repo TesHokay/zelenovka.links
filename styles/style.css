@@ -60,7 +60,8 @@ html,body{
 }
 
 .has-sub:hover::before,
-.has-sub:focus-within::before{
+.has-sub:focus-within::before,
+.has-sub.is-open::before{
   opacity:1;
 }
 
@@ -206,7 +207,8 @@ html,body{
 }
 
 .has-sub:hover .sub-links,
-.has-sub:focus-within .sub-links{
+.has-sub:focus-within .sub-links,
+.has-sub.is-open .sub-links{
   max-height:400px;
   opacity:1;
   margin-top:12px;
