@@ -44,25 +44,9 @@ html,body{
 
 .links-item{ position:relative; }
 
-.has-sub{padding-bottom:8px;}
+.has-sub{padding-bottom:0;}
 
 .has-sub > .link{position:relative; z-index:1;}
-
-.has-sub::before{
-  content:"";
-  position:absolute;
-  inset:auto 12px 0;
-  height:16px;
-  border-radius:0 0 12px 12px;
-  background:rgba(111,122,85,.12);
-  opacity:0;
-  transition:opacity .3s ease;
-}
-
-.has-sub:hover::before,
-.has-sub:focus-within::before{
-  opacity:1;
-}
 
 .link{
   --logo-box:60px;
@@ -206,7 +190,8 @@ html,body{
 }
 
 .has-sub:hover .sub-links,
-.has-sub:focus-within .sub-links{
+.has-sub:focus-within .sub-links,
+.has-sub.is-open .sub-links{
   max-height:400px;
   opacity:1;
   margin-top:12px;
@@ -228,7 +213,7 @@ html,body{
   background:var(--paper);
   color:var(--green-dark);
   border:1px solid rgba(41,51,33,.12);
-  box-shadow:0 2px 6px rgba(47, 60, 38, .12);
+  box-shadow:none;
   transition: transform .15s ease, background .15s ease;
   cursor:pointer;
 }
@@ -281,3 +266,36 @@ html,body{
 }
 
 .foot{ margin-top:12px; color:var(--green-dark); font-size:24px; font-weight:600 }
+
+@media (max-width: 600px){
+  .brand-sub{
+    margin:-24px 0 20px 0;
+    font:600 20px/1.35 "Montserrat", sans-serif;
+  }
+
+  .link{
+    --logo-box:52px;
+    --logo-size:34px;
+    font-size:18px;
+    min-height:74px;
+    padding:12px 18px;
+  }
+
+  .sub-link{
+    font-size:18px;
+    padding:12px 14px;
+  }
+
+  .contacts{
+    gap:10px;
+    margin:16px 0 8px;
+  }
+
+  .contact{
+    font-size:22px;
+  }
+
+  .foot{
+    font-size:20px;
+  }
+}

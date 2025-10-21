@@ -38,8 +38,8 @@
     <nav class="links" aria-label="Официальные площадки">
       <ul class="links-list">
         <li class="links-item has-sub">
-          <a class="link" href="https://goldapple.ru/catalogsearch/result?q=%D0%B7%D0%B5%D0%BB%D0%B5%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0"
-             target="_blank" rel="noopener noreferrer">
+          <a class="link link--goldapple" data-desktop-href="https://goldapple.ru/catalogsearch/result?q=%D0%B7%D0%B5%D0%BB%D0%B5%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0"
+             data-desktop-target="_blank" data-desktop-rel="noopener noreferrer">
             <span class="link-logo-wrap" aria-hidden="true">
               <img src="/assets/logos/goldapple.svg" alt="" class="link-logo" />
             </span>
@@ -149,16 +149,137 @@
       var body = document.body;
       var root = document.documentElement;
       var zoomValue = '55%';
+      var mobileQuery = window.matchMedia('(max-width: 768px)');
+      var goldAppleItem = document.querySelector('.links-item.has-sub');
+      var goldAppleLink = goldAppleItem ? goldAppleItem.querySelector('.link--goldapple') : null;
+      var desktopAttributes = goldAppleLink ? {
+        href: goldAppleLink.getAttribute('data-desktop-href'),
+        target: goldAppleLink.getAttribute('data-desktop-target'),
+        rel: goldAppleLink.getAttribute('data-desktop-rel')
+      } : {};
 
-      if (root) {
-        root.style.overflowX = 'hidden';
+      function applyOverflowLock() {
+        if (root) {
+          root.style.overflowX = 'hidden';
+        }
       }
 
-      if (body && 'zoom' in body.style) {
-        body.style.zoom = zoomValue;
-      } else if (body) {
-        body.style.transform = 'scale(0.55)';
+      function applyDesktopZoom() {
+        if (!body) {
+          return;
+        }
+
+        if ('zoom' in body.style) {
+          body.style.zoom = zoomValue;
+          body.style.transform = '';
+        } else {
+          body.style.transform = 'scale(0.55)';
+        }
         body.style.transformOrigin = 'top left';
+      }
+
+      function resetZoom() {
+        if (!body) {
+          return;
+        }
+
+        if ('zoom' in body.style) {
+          body.style.zoom = '';
+        }
+        body.style.transform = '';
+        body.style.transformOrigin = '';
+      }
+
+      function restoreAttribute(element, name, value) {
+        if (!element) {
+          return;
+        }
+
+        if (value) {
+          element.setAttribute(name, value);
+        } else {
+          element.removeAttribute(name);
+        }
+      }
+
+      function removeAttribute(element, name) {
+        if (element) {
+          element.removeAttribute(name);
+        }
+      }
+
+      function setAriaExpanded(value) {
+        if (goldAppleLink) {
+          goldAppleLink.setAttribute('aria-expanded', value);
+        }
+      }
+
+      function mobileClickHandler(event) {
+        event.preventDefault();
+
+        if (!goldAppleItem) {
+          return;
+        }
+
+        var isOpen = goldAppleItem.classList.toggle('is-open');
+        setAriaExpanded(isOpen ? 'true' : 'false');
+      }
+
+      function enableMobileMode() {
+        if (!goldAppleLink || !goldAppleItem) {
+          return;
+        }
+
+        goldAppleItem.classList.remove('is-open');
+        setAriaExpanded('false');
+        goldAppleLink.setAttribute('role', 'button');
+        goldAppleLink.setAttribute('aria-haspopup', 'true');
+        goldAppleLink.removeEventListener('click', mobileClickHandler);
+        goldAppleLink.addEventListener('click', mobileClickHandler);
+
+        removeAttribute(goldAppleLink, 'href');
+        removeAttribute(goldAppleLink, 'target');
+        removeAttribute(goldAppleLink, 'rel');
+      }
+
+      function enableDesktopMode() {
+        if (!goldAppleLink || !goldAppleItem) {
+          return;
+        }
+
+        goldAppleItem.classList.remove('is-open');
+        goldAppleLink.removeEventListener('click', mobileClickHandler);
+        goldAppleLink.removeAttribute('role');
+        goldAppleLink.removeAttribute('aria-expanded');
+        goldAppleLink.removeAttribute('aria-haspopup');
+
+        restoreAttribute(goldAppleLink, 'href', desktopAttributes.href);
+        restoreAttribute(goldAppleLink, 'target', desktopAttributes.target);
+        restoreAttribute(goldAppleLink, 'rel', desktopAttributes.rel);
+      }
+
+      function applyLayout(isMobile) {
+        applyOverflowLock();
+
+        if (isMobile) {
+          resetZoom();
+          enableMobileMode();
+        } else {
+          applyDesktopZoom();
+          enableDesktopMode();
+        }
+      }
+
+      function handleLayoutChange(event) {
+        applyLayout(event.matches);
+      }
+
+      applyLayout(mobileQuery.matches);
+
+      if (typeof mobileQuery.addEventListener === 'function') {
+        mobileQuery.addEventListener('change', handleLayoutChange);
+      } else if (typeof mobileQuery.addListener === 'function') {
+        mobileQuery.addListener(handleLayoutChange);
       }
 
       requestAnimationFrame(function () {
@@ -170,7 +291,6 @@
         }
         window.scrollTo(0, 0);
       });
-
     });
   </script>
 </body>
