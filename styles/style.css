@@ -44,7 +44,7 @@ html,body{
 
 .links-item{ position:relative; }
 
-.has-sub{padding-bottom:8px;}
+.has-sub{padding-bottom:0;}
 
 .has-sub > .link{position:relative; z-index:1;}
 
@@ -60,7 +60,8 @@ html,body{
 }
 
 .has-sub:hover::before,
-.has-sub:focus-within::before{
+.has-sub:focus-within::before,
+.has-sub.is-open::before{
   opacity:1;
 }
 
@@ -206,7 +207,8 @@ html,body{
 }
 
 .has-sub:hover .sub-links,
-.has-sub:focus-within .sub-links{
+.has-sub:focus-within .sub-links,
+.has-sub.is-open .sub-links{
   max-height:400px;
   opacity:1;
   margin-top:12px;
@@ -215,6 +217,8 @@ html,body{
   visibility:visible;
   transition:max-height .45s cubic-bezier(.22,.61,.36,1), opacity .35s ease, transform .45s cubic-bezier(.22,.61,.36,1), margin-top .45s cubic-bezier(.22,.61,.36,1);
 }
+
+.has-sub.is-open{padding-bottom:12px;}
 
 .sub-link{
   display:block;

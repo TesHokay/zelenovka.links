@@ -149,16 +149,137 @@
       var body = document.body;
       var root = document.documentElement;
       var zoomValue = '55%';
+      var mobileQuery = window.matchMedia('(max-width: 768px)');
+      var goldAppleItem = document.querySelector('.links-item.has-sub');
+      var goldAppleLink = goldAppleItem ? goldAppleItem.querySelector('.link') : null;
+      var originalAttributes = goldAppleLink ? {
+        href: goldAppleLink.getAttribute('href'),
+        target: goldAppleLink.getAttribute('target'),
+        rel: goldAppleLink.getAttribute('rel')
+      } : {};
 
-      if (root) {
-        root.style.overflowX = 'hidden';
+      function applyOverflowLock() {
+        if (root) {
+          root.style.overflowX = 'hidden';
+        }
       }
 
-      if (body && 'zoom' in body.style) {
-        body.style.zoom = zoomValue;
-      } else if (body) {
-        body.style.transform = 'scale(0.55)';
+      function applyDesktopZoom() {
+        if (!body) {
+          return;
+        }
+
+        if ('zoom' in body.style) {
+          body.style.zoom = zoomValue;
+          body.style.transform = '';
+        } else {
+          body.style.transform = 'scale(0.55)';
+        }
         body.style.transformOrigin = 'top left';
+      }
+
+      function resetZoom() {
+        if (!body) {
+          return;
+        }
+
+        if ('zoom' in body.style) {
+          body.style.zoom = '';
+        }
+        body.style.transform = '';
+        body.style.transformOrigin = '';
+      }
+
+      function restoreAttribute(element, name, value) {
+        if (!element) {
+          return;
+        }
+
+        if (value) {
+          element.setAttribute(name, value);
+        } else {
+          element.removeAttribute(name);
+        }
+      }
+
+      function removeAttribute(element, name) {
+        if (element) {
+          element.removeAttribute(name);
+        }
+      }
+
+      function setAriaExpanded(value) {
+        if (goldAppleLink) {
+          goldAppleLink.setAttribute('aria-expanded', value);
+        }
+      }
+
+      function mobileClickHandler(event) {
+        event.preventDefault();
+
+        if (!goldAppleItem) {
+          return;
+        }
+
+        var isOpen = goldAppleItem.classList.toggle('is-open');
+        setAriaExpanded(isOpen ? 'true' : 'false');
+      }
+
+      function enableMobileMode() {
+        if (!goldAppleLink || !goldAppleItem) {
+          return;
+        }
+
+        goldAppleItem.classList.remove('is-open');
+        setAriaExpanded('false');
+        goldAppleLink.setAttribute('role', 'button');
+        goldAppleLink.setAttribute('aria-haspopup', 'true');
+        goldAppleLink.removeEventListener('click', mobileClickHandler);
+        goldAppleLink.addEventListener('click', mobileClickHandler);
+
+        removeAttribute(goldAppleLink, 'href');
+        removeAttribute(goldAppleLink, 'target');
+        removeAttribute(goldAppleLink, 'rel');
+      }
+
+      function enableDesktopMode() {
+        if (!goldAppleLink || !goldAppleItem) {
+          return;
+        }
+
+        goldAppleItem.classList.remove('is-open');
+        goldAppleLink.removeEventListener('click', mobileClickHandler);
+        goldAppleLink.removeAttribute('role');
+        goldAppleLink.removeAttribute('aria-expanded');
+        goldAppleLink.removeAttribute('aria-haspopup');
+
+        restoreAttribute(goldAppleLink, 'href', originalAttributes.href);
+        restoreAttribute(goldAppleLink, 'target', originalAttributes.target);
+        restoreAttribute(goldAppleLink, 'rel', originalAttributes.rel);
+      }
+
+      function applyLayout(isMobile) {
+        applyOverflowLock();
+
+        if (isMobile) {
+          resetZoom();
+          enableMobileMode();
+        } else {
+          applyDesktopZoom();
+          enableDesktopMode();
+        }
+      }
+
+      function handleLayoutChange(event) {
+        applyLayout(event.matches);
+      }
+
+      applyLayout(mobileQuery.matches);
+
+      if (typeof mobileQuery.addEventListener === 'function') {
+        mobileQuery.addEventListener('change', handleLayoutChange);
+      } else if (typeof mobileQuery.addListener === 'function') {
+        mobileQuery.addListener(handleLayoutChange);
       }
 
       requestAnimationFrame(function () {
@@ -170,7 +291,6 @@
         }
         window.scrollTo(0, 0);
       });
-
     });
   </script>
 </body>
