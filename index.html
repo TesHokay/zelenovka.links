@@ -61,7 +61,16 @@
             <span class="link-logo-wrap" aria-hidden="true">
               <img src="/assets/logos/instagram.svg" alt="" class="link-logo" />
             </span>
-            <span class="link-text">Instagram</span>
+            <span class="link-text">Instagram<span class="link-asterisk" aria-hidden="true">*</span></span>
+          </a>
+        </li>
+
+        <li class="links-item">
+          <a class="link" href="https://www.tiktok.com/@myzelenovka?_t=ZG-90l641E5TXM&_r=1" target="_blank" rel="noopener">
+            <span class="link-logo-wrap" aria-hidden="true">
+              <img src="/assets/logos/tiktok.svg" alt="" class="link-logo" />
+            </span>
+            <span class="link-text">TikTok</span>
           </a>
         </li>
 
@@ -125,6 +134,8 @@
       </ul>
     </nav>
 
+    <p class="links-note">* Компания Meta Platforms Inc. признана экстремистской организацией, её деятельность запрещена на территории Российской Федерации.</p>
+
     <section class="contacts">
       <a href="tel:+79024719898" class="contact">
         <img src="/assets/logos/phone.svg" alt="" class="contact-icon" aria-hidden="true" />
@@ -148,139 +159,73 @@
     document.addEventListener('DOMContentLoaded', function () {
       var body = document.body;
       var root = document.documentElement;
-      var zoomValue = '55%';
-      var mobileQuery = window.matchMedia('(max-width: 768px)');
-      var goldAppleItem = document.querySelector('.links-item.has-sub');
-      var goldAppleLink = goldAppleItem ? goldAppleItem.querySelector('.link') : null;
-      var originalAttributes = goldAppleLink ? {
-        href: goldAppleLink.getAttribute('href'),
-        target: goldAppleLink.getAttribute('target'),
-        rel: goldAppleLink.getAttribute('rel')
-      } : {};
+      var defaultScale = 0.55;
+      var mobileScale = 0.45;
+      var mobileQuery = window.matchMedia('(max-width: 600px)');
 
-      function applyOverflowLock() {
-        if (root) {
-          root.style.overflowX = 'hidden';
-        }
+      if (root) {
+        root.style.overflowX = 'hidden';
       }
 
-      function applyDesktopZoom() {
+      function applyScale(scale) {
         if (!body) {
           return;
         }
+
+        var zoomValue = (scale * 100).toFixed(0) + '%';
 
         if ('zoom' in body.style) {
           body.style.zoom = zoomValue;
           body.style.transform = '';
+          body.style.transformOrigin = '';
         } else {
-          body.style.transform = 'scale(0.55)';
-        }
-        body.style.transformOrigin = 'top left';
-      }
-
-      function resetZoom() {
-        if (!body) {
-          return;
-        }
-
-        if ('zoom' in body.style) {
-          body.style.zoom = '';
-        }
-        body.style.transform = '';
-        body.style.transformOrigin = '';
-      }
-
-      function restoreAttribute(element, name, value) {
-        if (!element) {
-          return;
-        }
-
-        if (value) {
-          element.setAttribute(name, value);
-        } else {
-          element.removeAttribute(name);
+          body.style.transform = 'scale(' + scale + ')';
+          body.style.transformOrigin = 'top left';
         }
       }
 
-      function removeAttribute(element, name) {
-        if (element) {
-          element.removeAttribute(name);
-        }
+      function updateScale() {
+        var scale = mobileQuery.matches ? mobileScale : defaultScale;
+        applyScale(scale);
       }
 
-      function setAriaExpanded(value) {
-        if (goldAppleLink) {
-          goldAppleLink.setAttribute('aria-expanded', value);
-        }
-      }
-
-      function mobileClickHandler(event) {
-        event.preventDefault();
-
-        if (!goldAppleItem) {
-          return;
-        }
-
-        var isOpen = goldAppleItem.classList.toggle('is-open');
-        setAriaExpanded(isOpen ? 'true' : 'false');
-      }
-
-      function enableMobileMode() {
-        if (!goldAppleLink || !goldAppleItem) {
-          return;
-        }
-
-        goldAppleItem.classList.remove('is-open');
-        setAriaExpanded('false');
-        goldAppleLink.setAttribute('role', 'button');
-        goldAppleLink.setAttribute('aria-haspopup', 'true');
-        goldAppleLink.removeEventListener('click', mobileClickHandler);
-        goldAppleLink.addEventListener('click', mobileClickHandler);
-
-        removeAttribute(goldAppleLink, 'href');
-        removeAttribute(goldAppleLink, 'target');
-        removeAttribute(goldAppleLink, 'rel');
-      }
-
-      function enableDesktopMode() {
-        if (!goldAppleLink || !goldAppleItem) {
-          return;
-        }
-
-        goldAppleItem.classList.remove('is-open');
-        goldAppleLink.removeEventListener('click', mobileClickHandler);
-        goldAppleLink.removeAttribute('role');
-        goldAppleLink.removeAttribute('aria-expanded');
-        goldAppleLink.removeAttribute('aria-haspopup');
-
-        restoreAttribute(goldAppleLink, 'href', originalAttributes.href);
-        restoreAttribute(goldAppleLink, 'target', originalAttributes.target);
-        restoreAttribute(goldAppleLink, 'rel', originalAttributes.rel);
-      }
-
-      function applyLayout(isMobile) {
-        applyOverflowLock();
-
-        if (isMobile) {
-          resetZoom();
-          enableMobileMode();
-        } else {
-          applyDesktopZoom();
-          enableDesktopMode();
-        }
-      }
-
-      function handleLayoutChange(event) {
-        applyLayout(event.matches);
-      }
-
-      applyLayout(mobileQuery.matches);
+      updateScale();
 
       if (typeof mobileQuery.addEventListener === 'function') {
-        mobileQuery.addEventListener('change', handleLayoutChange);
+        mobileQuery.addEventListener('change', updateScale);
       } else if (typeof mobileQuery.addListener === 'function') {
-        mobileQuery.addListener(handleLayoutChange);
+        mobileQuery.addListener(updateScale);
       }
+
+      try {
+        window.addEventListener('resize', updateScale, { passive: true });
+      } catch (error) {
+        window.addEventListener('resize', updateScale);
+      }
+
+      var subItems = document.querySelectorAll('.links-item.has-sub');
+
+      subItems.forEach(function (item, index) {
+        var trigger = item.querySelector('.link');
+        var subLinks = item.querySelector('.sub-links');
+
+        if (!trigger || !subLinks) {
+          return;
+        }
+
+        if (!subLinks.id) {
+          subLinks.id = 'sub-links-' + (index + 1);
+        }
+
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.setAttribute('aria-controls', subLinks.id);
+
+        trigger.addEventListener('click', function (event) {
+          event.preventDefault();
+          var isOpen = item.classList.toggle('is-open');
+          trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+      });
 
       requestAnimationFrame(function () {
         if (root) {
@@ -291,6 +236,7 @@
         }
         window.scrollTo(0, 0);
       });
+
     });
   </script>
 </body>
