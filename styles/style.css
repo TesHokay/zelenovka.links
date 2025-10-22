@@ -153,6 +153,12 @@ html,body{
   text-align:center;
 }
 
+.link-asterisk{
+  margin-left:6px;
+  font-size:0.75em;
+  line-height:1;
+}
+
 .links-item--label{
   display:flex;
   justify-content:center;
@@ -283,3 +289,11 @@ html,body{
 }
 
 .foot{ margin-top:12px; color:var(--green-dark); font-size:24px; font-weight:600 }
+
+.links-note{
+  margin:16px auto 0;
+  max-width:560px;
+  font-size:14px;
+  line-height:1.4;
+  color:rgba(41,51,33,.72);
+}
