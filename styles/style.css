@@ -242,6 +242,16 @@ html,body{
     visibility:hidden;
     transition:max-height .55s cubic-bezier(.22,.61,.36,1), opacity .45s ease, transform .55s cubic-bezier(.22,.61,.36,1), margin-top .55s cubic-bezier(.22,.61,.36,1), visibility 0s linear .55s;
   }
+
+  .has-sub.is-open .sub-links{
+    max-height:400px;
+    opacity:1;
+    margin-top:12px;
+    transform:translateY(0);
+    pointer-events:auto;
+    visibility:visible;
+    transition:max-height .45s cubic-bezier(.22,.61,.36,1), opacity .35s ease, transform .45s cubic-bezier(.22,.61,.36,1), margin-top .45s cubic-bezier(.22,.61,.36,1);
+  }
 }
 
 .sub-link{
