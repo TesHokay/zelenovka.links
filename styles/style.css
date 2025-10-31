@@ -226,6 +226,24 @@ html,body{
 
 .has-sub.is-open{padding-bottom:12px;}
 
+@media (hover: none) and (pointer: coarse){
+  .has-sub:hover::before,
+  .has-sub:focus-within::before{
+    opacity:0;
+  }
+
+  .has-sub:hover .sub-links,
+  .has-sub:focus-within .sub-links{
+    max-height:0;
+    opacity:0;
+    margin-top:0;
+    transform:translateY(-8px);
+    pointer-events:none;
+    visibility:hidden;
+    transition:max-height .55s cubic-bezier(.22,.61,.36,1), opacity .45s ease, transform .55s cubic-bezier(.22,.61,.36,1), margin-top .55s cubic-bezier(.22,.61,.36,1), visibility 0s linear .55s;
+  }
+}
+
 .sub-link{
   display:block;
   width:100%;
