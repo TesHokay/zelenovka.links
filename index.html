@@ -224,6 +224,10 @@
           event.preventDefault();
           var isOpen = item.classList.toggle('is-open');
           trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+          if (!isOpen && mobileQuery.matches) {
+            trigger.blur();
+          }
         });
       });
 
