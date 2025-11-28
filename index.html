@@ -247,5 +247,365 @@
 
     });
   </script>
+
+  <script>
+    (function () {
+      var SPREADSHEET_ID = 'PASTE_SPREADSHEET_ID_HERE';
+      var SERVICE_ACCOUNT_EMAIL = 'service-account@project-id.iam.gserviceaccount.com';
+      var SERVICE_ACCOUNT_PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n';
+      var EVENTS_SHEET_NAME = 'Events';
+      var DASHBOARD_SHEET_NAME = 'Dashboard';
+      var DASHBOARD_SETUP_ENABLED = false;
+
+      var tokenCache = {
+        token: null,
+        expiresAt: 0
+      };
+
+      function base64UrlEncode(buffer) {
+        var bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+        var binary = '';
+        for (var i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      }
+
+      function stringToArrayBuffer(str) {
+        var encoder = new TextEncoder();
+        return encoder.encode(str).buffer;
+      }
+
+      function importPrivateKey(pem) {
+        var pemBody = pem.replace(/-----BEGIN PRIVATE KEY-----/, '')
+          .replace(/-----END PRIVATE KEY-----/, '')
+          .replace(/\s+/g, '');
+        var binary = atob(pemBody);
+        var len = binary.length;
+        var buffer = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+          buffer[i] = binary.charCodeAt(i);
+        }
+
+        return crypto.subtle.importKey(
+          'pkcs8',
+          buffer,
+          {
+            name: 'RSASSA-PKCS1-v1_5',
+            hash: 'SHA-256'
+          },
+          false,
+          ['sign']
+        );
+      }
+
+      function normalizePrivateKey(key) {
+        if (!key) {
+          return '';
+        }
+        if (key.includes('\\n')) {
+          return key.replace(/\\n/g, '\n');
+        }
+        return key;
+      }
+
+      function createJwtPayload() {
+        var now = Math.floor(Date.now() / 1000);
+        return {
+          iss: SERVICE_ACCOUNT_EMAIL,
+          scope: 'https://www.googleapis.com/auth/spreadsheets',
+          aud: 'https://oauth2.googleapis.com/token',
+          exp: now + 3600,
+          iat: now
+        };
+      }
+
+      function encodeSection(data) {
+        return base64UrlEncode(new TextEncoder().encode(JSON.stringify(data)));
+      }
+
+      function buildUnsignedJwt(payload) {
+        var header = {
+          alg: 'RS256',
+          typ: 'JWT'
+        };
+        return encodeSection(header) + '.' + encodeSection(payload);
+      }
+
+      async function signJwt(unsignedJwt, privateKeyPem) {
+        var key = await importPrivateKey(privateKeyPem);
+        var signature = await crypto.subtle.sign(
+          'RSASSA-PKCS1-v1_5',
+          key,
+          stringToArrayBuffer(unsignedJwt)
+        );
+        return base64UrlEncode(signature);
+      }
+
+      async function fetchAccessToken() {
+        var now = Date.now();
+        if (tokenCache.token && tokenCache.expiresAt > now + 60 * 1000) {
+          return tokenCache.token;
+        }
+
+        var privateKey = normalizePrivateKey(SERVICE_ACCOUNT_PRIVATE_KEY);
+        if (!privateKey || !SPREADSHEET_ID || !SERVICE_ACCOUNT_EMAIL) {
+          console.warn('[Sheets] Не заполнены настройки сервисного аккаунта/таблицы.');
+          return null;
+        }
+
+        var payload = createJwtPayload();
+        var unsignedJwt = buildUnsignedJwt(payload);
+        var signedJwt = await signJwt(unsignedJwt, privateKey);
+        var assertion = unsignedJwt + '.' + signedJwt;
+
+        var response = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            assertion: assertion
+          })
+        });
+
+        if (!response.ok) {
+          console.error('[Sheets] Ошибка получения токена', await response.text());
+          return null;
+        }
+
+        var data = await response.json();
+        var expiresInMs = (data.expires_in || 3600) * 1000;
+        tokenCache.token = data.access_token;
+        tokenCache.expiresAt = now + expiresInMs;
+        return tokenCache.token;
+      }
+
+      async function authorizedFetch(url, options) {
+        var token = await fetchAccessToken();
+        if (!token) {
+          return null;
+        }
+        var opts = options || {};
+        opts.headers = Object.assign({}, opts.headers, {
+          Authorization: 'Bearer ' + token
+        });
+        return fetch(url, opts);
+      }
+
+      async function ensureSheetExists(title) {
+        var metaResponse = await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID);
+        if (!metaResponse || !metaResponse.ok) {
+          console.error('[Sheets] Не удалось получить метаданные таблицы');
+          return null;
+        }
+        var meta = await metaResponse.json();
+        var sheet = (meta.sheets || []).find(function (s) { return s.properties && s.properties.title === title; });
+        if (sheet) {
+          return sheet.properties.sheetId;
+        }
+
+        var addResponse = await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + ':batchUpdate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            requests: [{
+              addSheet: {
+                properties: {
+                  title: title,
+                  gridProperties: {
+                    frozenRowCount: 1
+                  }
+                }
+              }
+            }]
+          })
+        });
+
+        if (!addResponse || !addResponse.ok) {
+          console.error('[Sheets] Не удалось создать лист', title);
+          return null;
+        }
+        var addData = await addResponse.json();
+        var replies = addData.replies || [];
+        var added = replies[0] && replies[0].addSheet ? replies[0].addSheet.properties : null;
+        return added ? added.sheetId : null;
+      }
+
+      async function writeHeadersIfEmpty(sheetName, headers) {
+        var readUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + '/values/' + encodeURIComponent(sheetName + '!A1:A1');
+        var readResponse = await authorizedFetch(readUrl);
+        if (!readResponse || !readResponse.ok) {
+          return;
+        }
+        var readData = await readResponse.json();
+        if (readData.values && readData.values.length > 0) {
+          return;
+        }
+
+        var updateUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + '/values/' + encodeURIComponent(sheetName + '!A1:' + String.fromCharCode(64 + headers.length) + '1') + '?valueInputOption=USER_ENTERED';
+        await authorizedFetch(updateUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            values: [headers]
+          })
+        });
+      }
+
+      async function setupDashboard(eventsSheetId) {
+        if (!DASHBOARD_SETUP_ENABLED) {
+          return;
+        }
+
+        var dashboardId = await ensureSheetExists(DASHBOARD_SHEET_NAME);
+        if (!dashboardId) {
+          return;
+        }
+
+        var valuesUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + '/values/' + encodeURIComponent(DASHBOARD_SHEET_NAME + '!A1');
+        await authorizedFetch(valuesUrl + '?valueInputOption=USER_ENTERED', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            values: [
+              ['Дашборд кликов'],
+              ['По кнопкам', "=QUERY('" + EVENTS_SHEET_NAME + "'!A:D,\"select B, count(A) where A is not null group by B label count(A) 'Кликов'\"")"],
+              ['По категориям', "=QUERY('" + EVENTS_SHEET_NAME + "'!A:D,\"select D, count(A) where A is not null group by D label count(A) 'Кликов'\"")"],
+              ['По времени (час)', "=QUERY({ARRAYFORMULA(DATETIMEVALUE(TEXT('" + EVENTS_SHEET_NAME + "'!A:A, \"yyyy-mm-dd hh\"))), '" + EVENTS_SHEET_NAME + "'!B:D},\"select Col1, count(Col1) where Col1 is not null group by Col1 label count(Col1) 'Кликов'\"")"]
+            ]
+          })
+        });
+
+        await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + ':batchUpdate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            requests: [{
+              addChart: {
+                chart: {
+                  spec: {
+                    title: 'Клики по кнопкам',
+                    basicChart: {
+                      chartType: 'BAR',
+                      legendPosition: 'RIGHT_LEGEND',
+                      domains: [{
+                        domain: {
+                          sourceRange: {
+                            sources: [{
+                              sheetId: dashboardId,
+                              startRowIndex: 1,
+                              endRowIndex: 10,
+                              startColumnIndex: 0,
+                              endColumnIndex: 1
+                            }]
+                          }
+                        }
+                      }],
+                      series: [{
+                        series: {
+                          sourceRange: {
+                            sources: [{
+                              sheetId: dashboardId,
+                              startRowIndex: 1,
+                              endRowIndex: 10,
+                              startColumnIndex: 1,
+                              endColumnIndex: 2
+                            }]
+                          }
+                        },
+                        targetAxis: 'LEFT_AXIS'
+                      }],
+                      headerCount: 0
+                    }
+                  },
+                  position: {
+                    overlayPosition: {
+                      anchorCell: {
+                        sheetId: dashboardId,
+                        rowIndex: 6,
+                        columnIndex: 0
+                      }
+                    }
+                  }
+                }
+              }
+            }]
+          })
+        });
+      }
+
+      async function appendEventRow(payload) {
+        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + '/values/' + encodeURIComponent(EVENTS_SHEET_NAME + '!A:D') + ':append?valueInputOption=USER_ENTERED';
+        await authorizedFetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            values: [[
+              payload.timestamp,
+              payload.label,
+              payload.href,
+              payload.category
+            ]]
+          })
+        });
+      }
+
+      function buildPayload(target) {
+        var label = target.getAttribute('data-track-label') || target.textContent.trim();
+        var category = target.getAttribute('data-track-category') || (target.classList.contains('sub-link') ? 'sub-link' : 'link');
+        return {
+          timestamp: new Date().toISOString(),
+          label: label,
+          href: target.href || '',
+          category: category
+        };
+      }
+
+      async function trackClick(event) {
+        try {
+          var payload = buildPayload(event.currentTarget);
+          await appendEventRow(payload);
+        } catch (error) {
+          console.error('[Sheets] Ошибка записи события', error);
+        }
+      }
+
+      function bindTracking() {
+        var linkSelector = '.links-list a, .contacts a';
+        var anchors = document.querySelectorAll(linkSelector);
+        anchors.forEach(function (anchor) {
+          anchor.addEventListener('click', trackClick, { passive: true });
+        });
+      }
+
+      async function initSheetsLogging() {
+        var eventsSheetId = await ensureSheetExists(EVENTS_SHEET_NAME);
+        if (!eventsSheetId) {
+          return;
+        }
+        await writeHeadersIfEmpty(EVENTS_SHEET_NAME, ['Время', 'Кнопка/ссылка', 'URL', 'Категория']);
+        await setupDashboard(eventsSheetId);
+        bindTracking();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSheetsLogging);
+      } else {
+        initSheetsLogging();
+      }
+    })();
+  </script>
 </body>
 </html>
