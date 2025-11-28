@@ -250,12 +250,16 @@
 
   <script>
     (function () {
-      var SPREADSHEET_ID = '12s-ytJMT6ifszRWrznhFZ-8d8OeeaaQYD-AbtpsiB9E';
-      var SERVICE_ACCOUNT_EMAIL = 'sora-534@soragenerator-479413.iam.gserviceaccount.com';
-      var SERVICE_ACCOUNT_PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCqs9+YGQYXByWm\nghmbkN9hqSFT0K15stvYp980dtzC/F2KrV7bHSR2DDsLoomJRyOO0UBWTLxTPt6s\nrSSZ9dzmXBIqdunSWQc+0zCEjTWG7j2vCkuXjYaLM8J5B8RE8LGx5Pjbmthr0FAu\nnrlnZ8bctxB8h8lHXfo87phfUiJgV0eHFRQYglm5HiNt+6WVRMGDsrZwk7Ddkxf/\ny6xpO+WjgM6NTPaXf/UlD7xwOZ2hTTt54P6Cif/LUPwN2JsPTykLGoqjTegCZ9ev\nGUx7G4dsM7mCM0hS/T5XPndgiolJfSIFAi2XH94Vs+3mf71FD/YRtMBMNX0ln9jt\nPa3dJrnpAgMBAAECggEAGxAFRMHC22fAqlM56BXhtEPyCq2ssvyOKh0DH/gwK6GC\n2vd9cFOAck6iFcgg8eibVIsMHiJwQOpYtxuED/yQltzF7IGJtFV09prYuEsCz295\nzARf05kWWX9NN47pqNxX75ITeg1kfkM6UwnK7v/e4SMMtBF68ZuOjpZtBb+pv4gT\n5uNtEOWuX5O13A9WyWv9Dfsz1PPNmjThMV80QXVh+1B41Mnpf86vkD92xXyXx+Y9\nAVEhoTxF2dMjBVCJLhFoi8cVaDgZEBWXGgIdsTaV4Kd6GmYtCkyuEjUKOT7BL5+T\nO4XMZY9xGJO/cw/PdGjhkGspYInL4XaBBqs07i9LWQKBgQDvHTlFLAT4x1qYjxfR\nsxi0aXEY16XM9NdBT/SSEengr/CikAdy6MW7CXSgP3vfhJeDhose53MDciw1n7ZO\narmZbWQTLyG5vCL5qkVbI4WBK+7TIMLGITV312uJV7xBtd1HzXhLEecaotH0d2z2\n/IHf4sN5B0pE1zJ1IINQ3z0r6wKBgQC2weLOkiT93UMWlHNOBniRg4ITd4cVFqYr\nyLdHRDWZggPfk7+q9tEbiEnGq1xjFVFREZa/3JU1qAN91RZDabtK/d0STYz7Eetl\n8BngNbmgKls0Stz7zRysKbUnu2o7/KqsKgLQvy1D9zkY87L3EDjJbN4EAw3mxO6J\nLEXH8L/gewKBgQCDt0Bl9zKh7AbexOwlCpgQQYkYWyos9a5hfu7FS/LeX2yZz+ca\niFjrh/DjmTTeUoa33/RgyLQVcN4jh9//4FBu0NBwtOTKEHXfu8jKxI11M0Myr/g6\n9e4jHtpQ5LCCLfE/7VJXX/xDMu+ez+6JO107fAmbcMWbmENmO8u6T869kwKBgQCe\nwXome6mKpYQ7vyUSqGhf7181TeWYGh6rdiZP0B7HhLucohojh1hKlG+SFxWgNMp4\no9DSRemPvK2bx1kZomVCVZiO57MJ/pz/5jx0Gfdv/JtRp56jVaAMpgZpx1IXXftc\npvnfH9NQcRe2ZywVlo/d2aZa0dRnnLahjkXn02i6tQKBgGM0kO7o7dYrRyapxQXZ\nAsJuoBllwdRL3F//Ad8VccMtkEAnX20guqY4HoqL4KO5AJZ4xVVKCJFeA97ui6d9\nsP1b+rsUvLrlgRHWRjQBNaapuSLOkHwkLiwivKj3EwrCWe4VQmyZhy8JRBTZtWzI\nbduRDUhvwfrQNUMflWaFaVaA\n-----END PRIVATE KEY-----\n';
+      var SHEETS_CONFIG_URL = '/assets/service-account.json';
       var EVENTS_SHEET_NAME = 'Events';
       var DASHBOARD_SHEET_NAME = 'Dashboard';
       var DASHBOARD_SETUP_ENABLED = false;
+
+      var sheetsConfig = {
+        spreadsheetId: '',
+        serviceAccountEmail: '',
+        privateKey: ''
+      };
 
       var tokenCache = {
         token: null,
@@ -303,8 +307,8 @@
         if (!key) {
           return '';
         }
-        if (key.includes('\\n')) {
-          return key.replace(/\\n/g, '\n');
+        if (key.includes('\n')) {
+          return key.replace(/\n/g, '\n');
         }
         return key;
       }
@@ -312,7 +316,7 @@
       function createJwtPayload() {
         var now = Math.floor(Date.now() / 1000);
         return {
-          iss: SERVICE_ACCOUNT_EMAIL,
+          iss: sheetsConfig.serviceAccountEmail,
           scope: 'https://www.googleapis.com/auth/spreadsheets',
           aud: 'https://oauth2.googleapis.com/token',
           exp: now + 3600,
@@ -348,8 +352,8 @@
           return tokenCache.token;
         }
 
-        var privateKey = normalizePrivateKey(SERVICE_ACCOUNT_PRIVATE_KEY);
-        if (!privateKey || !SPREADSHEET_ID || !SERVICE_ACCOUNT_EMAIL) {
+        var privateKey = normalizePrivateKey(sheetsConfig.privateKey);
+        if (!privateKey || !sheetsConfig.spreadsheetId || !sheetsConfig.serviceAccountEmail) {
           console.warn('[Sheets] Не заполнены настройки сервисного аккаунта/таблицы.');
           return null;
         }
@@ -395,7 +399,7 @@
       }
 
       async function ensureSheetExists(title) {
-        var metaResponse = await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID);
+        var metaResponse = await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId);
         if (!metaResponse || !metaResponse.ok) {
           console.error('[Sheets] Не удалось получить метаданные таблицы');
           return null;
@@ -406,7 +410,7 @@
           return sheet.properties.sheetId;
         }
 
-        var addResponse = await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + ':batchUpdate', {
+        var addResponse = await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + ':batchUpdate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -436,7 +440,7 @@
       }
 
       async function writeHeadersIfEmpty(sheetName, headers) {
-        var readUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + '/values/' + encodeURIComponent(sheetName + '!A1:A1');
+        var readUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + '/values/' + encodeURIComponent(sheetName + '!A1:A1');
         var readResponse = await authorizedFetch(readUrl);
         if (!readResponse || !readResponse.ok) {
           return;
@@ -446,7 +450,7 @@
           return;
         }
 
-        var updateUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + '/values/' + encodeURIComponent(sheetName + '!A1:' + String.fromCharCode(64 + headers.length) + '1') + '?valueInputOption=USER_ENTERED';
+        var updateUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + '/values/' + encodeURIComponent(sheetName + '!A1:' + String.fromCharCode(64 + headers.length) + '1') + '?valueInputOption=USER_ENTERED';
         await authorizedFetch(updateUrl, {
           method: 'PUT',
           headers: {
@@ -468,7 +472,7 @@
           return;
         }
 
-        var valuesUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + '/values/' + encodeURIComponent(DASHBOARD_SHEET_NAME + '!A1');
+        var valuesUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + '/values/' + encodeURIComponent(DASHBOARD_SHEET_NAME + '!A1');
         await authorizedFetch(valuesUrl + '?valueInputOption=USER_ENTERED', {
           method: 'PUT',
           headers: {
@@ -477,14 +481,13 @@
           body: JSON.stringify({
             values: [
               ['Дашборд кликов'],
-              ['По кнопкам', "=QUERY('" + EVENTS_SHEET_NAME + "'!A:D,\"select B, count(A) where A is not null group by B label count(A) 'Кликов'\"")"],
-              ['По категориям', "=QUERY('" + EVENTS_SHEET_NAME + "'!A:D,\"select D, count(A) where A is not null group by D label count(A) 'Кликов'\"")"],
-              ['По времени (час)', "=QUERY({ARRAYFORMULA(DATETIMEVALUE(TEXT('" + EVENTS_SHEET_NAME + "'!A:A, \"yyyy-mm-dd hh\"))), '" + EVENTS_SHEET_NAME + "'!B:D},\"select Col1, count(Col1) where Col1 is not null group by Col1 label count(Col1) 'Кликов'\"")"]
+              ['По кнопкам', "=QUERY('" + EVENTS_SHEET_NAME + "'!A:D,\"select B, count(A) where A is not null group by B label count(A) 'Кликов'\")"],
+              ['По категориям', "=QUERY('" + EVENTS_SHEET_NAME + "'!A:D,\"select D, count(A) where A is not null group by D label count(A) 'Кликов'\")"],
+              ['По времени (час)', "=QUERY({ARRAYFORMULA(DATETIMEVALUE(TEXT('" + EVENTS_SHEET_NAME + "'!A:A, \"yyyy-mm-dd hh\"))), '" + EVENTS_SHEET_NAME + "'!B:D},\"select Col1, count(Col1) where Col1 is not null group by Col1 label count(Col1) 'Кликов'\")"]
             ]
           })
-        });
 
-        await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + ':batchUpdate', {
+        await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + ':batchUpdate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -545,7 +548,7 @@
       }
 
       async function appendEventRow(payload) {
-        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID + '/values/' + encodeURIComponent(EVENTS_SHEET_NAME + '!A:D') + ':append?valueInputOption=USER_ENTERED';
+        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + '/values/' + encodeURIComponent(EVENTS_SHEET_NAME + '!A:D') + ':append?valueInputOption=USER_ENTERED';
         await authorizedFetch(url, {
           method: 'POST',
           headers: {
@@ -590,7 +593,46 @@
         });
       }
 
+      function applySheetsConfig(config) {
+        sheetsConfig.spreadsheetId = config.spreadsheetId || '';
+        sheetsConfig.serviceAccountEmail = config.serviceAccountEmail || '';
+        sheetsConfig.privateKey = config.privateKey || '';
+      }
+
+      async function loadServiceAccountConfig() {
+        try {
+          var response = await fetch(SHEETS_CONFIG_URL, { cache: 'no-store' });
+          if (!response.ok) {
+            console.warn('[Sheets] Файл конфигурации сервисного аккаунта недоступен');
+            return null;
+          }
+
+          var data = await response.json();
+          var config = {
+            spreadsheetId: data.spreadsheet_id || data.spreadsheetId || '',
+            serviceAccountEmail: data.client_email || data.service_account_email || '',
+            privateKey: data.private_key || ''
+          };
+
+          if (!config.spreadsheetId || !config.serviceAccountEmail || !config.privateKey) {
+            console.warn('[Sheets] В конфигурации не хватает обязательных полей');
+            return null;
+          }
+
+          return config;
+        } catch (error) {
+          console.error('[Sheets] Ошибка загрузки конфигурации сервисного аккаунта', error);
+          return null;
+        }
+      }
+
       async function initSheetsLogging() {
+        var config = await loadServiceAccountConfig();
+        if (!config) {
+          return;
+        }
+
+        applySheetsConfig(config);
         var eventsSheetId = await ensureSheetExists(EVENTS_SHEET_NAME);
         if (!eventsSheetId) {
           return;
