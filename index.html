@@ -297,7 +297,23 @@
 
       function normalizePrivateKey(key) {
         if (!key) return '';
-        return key;
+
+        var normalized = String(key).trim();
+
+        if (normalized.indexOf('\\n') !== -1) {
+          normalized = normalized.replace(/\\n/g, '\n');
+        }
+
+        var hasPemMarkers =
+          normalized.indexOf('BEGIN PRIVATE KEY') !== -1 &&
+          normalized.indexOf('END PRIVATE KEY') !== -1;
+
+        if (!hasPemMarkers) {
+          normalized =
+            '-----BEGIN PRIVATE KEY-----\n' + normalized + '\n-----END PRIVATE KEY-----';
+        }
+
+        return normalized;
       }
 
       function createJwtPayload() {
