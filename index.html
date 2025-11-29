@@ -31,7 +31,7 @@
 <body>
   <main class="container">
     <header class="brand">
-      <img src="assets/logos.png" alt="Зелёновка логотип" class="logo" loading="eager" decoding="async" />
+      <img src="/assets/logos.png" alt="Зелёновка логотип" class="logo" loading="eager" decoding="async" />
       <p class="brand-sub">Натуральный уход • Made with care</p>
     </header>
 
@@ -49,14 +49,14 @@
           <div class="sub-links" role="group" aria-label="Золотое яблоко — категории">
             <a class="sub-link" href="https://goldapple.ru/99000110086-tehnologii-ot-prirody"
                target="_blank" rel="noopener noreferrer">Шампунь</a>
-            <a class="sub-link" href="https://goldapple.ru/99000110134-tehnologii-ot-prirody"
+            <a class="sub-link" href="https://goldapple.ru/99000110134-tehnologii-ot-prирody"
                target="_blank" rel="noopener noreferrer">Бальзам для волос</a>
-            <a class="sub-link" href="https://goldapple.ru/99000110087-tehnologii-ot-prirody"
+            <a class="sub-link" href="https://goldapple.ru/99000110087-tehnologii-ot-prирody"
                target="_blank" rel="noopener noreferrer">Крем для бритья</a>
           </div>
         </li>
 
-                <li class="links-item has-sub">
+        <li class="links-item has-sub">
           <a class="link" href="https://www.wildberries.ru/catalog/0/search.aspx?searchText=%D0%B7%D0%B5%D0%BB%D1%91%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0" target="_blank" rel="noopener">
             <span class="link-logo-wrap" aria-hidden="true">
               <img src="/assets/logos/wildberries.svg" alt="" class="link-logo" />
@@ -136,7 +136,8 @@
             <span class="link-text">Официальный сайт</span>
           </a>
         </li>
-
+      </ul>
+    </nav>
 
     <p class="links-note">* Компания Meta Platforms Inc. признана экстремистской организацией, её деятельность запрещена на территории Российской Федерации.</p>
 
@@ -157,7 +158,6 @@
   </main>
 
   <!-- (опционально) Метрика / GA4 -->
-  <!-- Вставишь сюда счётчик позже -->
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -172,9 +172,7 @@
       }
 
       function applyScale(scale) {
-        if (!body) {
-          return;
-        }
+        if (!body) return;
 
         var zoomValue = (scale * 100).toFixed(0) + '%';
 
@@ -236,15 +234,10 @@
       });
 
       requestAnimationFrame(function () {
-        if (root) {
-          root.scrollTop = 0;
-        }
-        if (body) {
-          body.scrollTop = 0;
-        }
+        if (root) root.scrollTop = 0;
+        if (body) body.scrollTop = 0;
         window.scrollTo(0, 0);
       });
-
     });
   </script>
 
@@ -252,11 +245,9 @@
     (function () {
       var SHEETS_CONFIG_URL = '/assets/service-account.json';
       var EVENTS_SHEET_NAME = 'Events';
-      var DASHBOARD_SHEET_NAME = 'Dashboard';
-      var DASHBOARD_SETUP_ENABLED = false;
 
       var sheetsConfig = {
-        spreadsheetId: '',
+        spreadsheetId: '12s-ytJMT6ifszRWrznhFZ-8d8OeeaaQYD-AbtpsiB9E',
         serviceAccountEmail: '',
         privateKey: ''
       };
@@ -283,6 +274,7 @@
       function importPrivateKey(pem) {
         var pemBody = pem.replace(/-----BEGIN PRIVATE KEY-----/, '')
           .replace(/-----END PRIVATE KEY-----/, '')
+          .replace(/\r?\n/g, '')
           .replace(/\s+/g, '');
         var binary = atob(pemBody);
         var len = binary.length;
@@ -304,12 +296,7 @@
       }
 
       function normalizePrivateKey(key) {
-        if (!key) {
-          return '';
-        }
-        if (key.includes('\n')) {
-          return key.replace(/\n/g, '\n');
-        }
+        if (!key) return '';
         return key;
       }
 
@@ -388,9 +375,8 @@
 
       async function authorizedFetch(url, options) {
         var token = await fetchAccessToken();
-        if (!token) {
-          return null;
-        }
+        if (!token) return null;
+
         var opts = options || {};
         opts.headers = Object.assign({}, opts.headers, {
           Authorization: 'Bearer ' + token
@@ -399,35 +385,40 @@
       }
 
       async function ensureSheetExists(title) {
-        var metaResponse = await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId);
+        var metaResponse = await authorizedFetch(
+          'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId
+        );
         if (!metaResponse || !metaResponse.ok) {
           console.error('[Sheets] Не удалось получить метаданные таблицы');
           return null;
         }
         var meta = await metaResponse.json();
-        var sheet = (meta.sheets || []).find(function (s) { return s.properties && s.properties.title === title; });
+        var sheet = (meta.sheets || []).find(function (s) {
+          return s.properties && s.properties.title === title;
+        });
         if (sheet) {
           return sheet.properties.sheetId;
         }
 
-        var addResponse = await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + ':batchUpdate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            requests: [{
-              addSheet: {
-                properties: {
-                  title: title,
-                  gridProperties: {
-                    frozenRowCount: 1
+        var addResponse = await authorizedFetch(
+          'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + ':batchUpdate',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              requests: [{
+                addSheet: {
+                  properties: {
+                    title: title,
+                    gridProperties: {
+                      frozenRowCount: 1
+                    }
                   }
                 }
-              }
-            }]
-          })
-        });
+              }]
+            })
+          }
+        );
 
         if (!addResponse || !addResponse.ok) {
           console.error('[Sheets] Не удалось создать лист', title);
@@ -440,120 +431,47 @@
       }
 
       async function writeHeadersIfEmpty(sheetName, headers) {
-        var readUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + '/values/' + encodeURIComponent(sheetName + '!A1:A1');
+        var readUrl =
+          'https://sheets.googleapis.com/v4/spreadsheets/' +
+          sheetsConfig.spreadsheetId +
+          '/values/' +
+          encodeURIComponent(sheetName + '!A1:A1');
+
         var readResponse = await authorizedFetch(readUrl);
-        if (!readResponse || !readResponse.ok) {
-          return;
-        }
+        if (!readResponse || !readResponse.ok) return;
+
         var readData = await readResponse.json();
         if (readData.values && readData.values.length > 0) {
           return;
         }
 
-        var updateUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + '/values/' + encodeURIComponent(sheetName + '!A1:' + String.fromCharCode(64 + headers.length) + '1') + '?valueInputOption=USER_ENTERED';
+        var endColCode = String.fromCharCode(64 + headers.length);
+
+        var updateUrl =
+          'https://sheets.googleapis.com/v4/spreadsheets/' +
+          sheetsConfig.spreadsheetId +
+          '/values/' +
+          encodeURIComponent(sheetName + '!A1:' + endColCode + '1') +
+          '?valueInputOption=USER_ENTERED';
+
         await authorizedFetch(updateUrl, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            values: [headers]
-          })
-        });
-      }
-
-      async function setupDashboard(eventsSheetId) {
-        if (!DASHBOARD_SETUP_ENABLED) {
-          return;
-        }
-
-        var dashboardId = await ensureSheetExists(DASHBOARD_SHEET_NAME);
-        if (!dashboardId) {
-          return;
-        }
-
-        var valuesUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + '/values/' + encodeURIComponent(DASHBOARD_SHEET_NAME + '!A1');
-        await authorizedFetch(valuesUrl + '?valueInputOption=USER_ENTERED', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            values: [
-              ['Дашборд кликов'],
-              ['По кнопкам', "=QUERY('" + EVENTS_SHEET_NAME + "'!A:D,\"select B, count(A) where A is not null group by B label count(A) 'Кликов'\")"],
-              ['По категориям', "=QUERY('" + EVENTS_SHEET_NAME + "'!A:D,\"select D, count(A) where A is not null group by D label count(A) 'Кликов'\")"],
-              ['По времени (час)', "=QUERY({ARRAYFORMULA(DATETIMEVALUE(TEXT('" + EVENTS_SHEET_NAME + "'!A:A, \"yyyy-mm-dd hh\"))), '" + EVENTS_SHEET_NAME + "'!B:D},\"select Col1, count(Col1) where Col1 is not null group by Col1 label count(Col1) 'Кликов'\")"]
-            ]
-          })
-
-        await authorizedFetch('https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + ':batchUpdate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            requests: [{
-              addChart: {
-                chart: {
-                  spec: {
-                    title: 'Клики по кнопкам',
-                    basicChart: {
-                      chartType: 'BAR',
-                      legendPosition: 'RIGHT_LEGEND',
-                      domains: [{
-                        domain: {
-                          sourceRange: {
-                            sources: [{
-                              sheetId: dashboardId,
-                              startRowIndex: 1,
-                              endRowIndex: 10,
-                              startColumnIndex: 0,
-                              endColumnIndex: 1
-                            }]
-                          }
-                        }
-                      }],
-                      series: [{
-                        series: {
-                          sourceRange: {
-                            sources: [{
-                              sheetId: dashboardId,
-                              startRowIndex: 1,
-                              endRowIndex: 10,
-                              startColumnIndex: 1,
-                              endColumnIndex: 2
-                            }]
-                          }
-                        },
-                        targetAxis: 'LEFT_AXIS'
-                      }],
-                      headerCount: 0
-                    }
-                  },
-                  position: {
-                    overlayPosition: {
-                      anchorCell: {
-                        sheetId: dashboardId,
-                        rowIndex: 6,
-                        columnIndex: 0
-                      }
-                    }
-                  }
-                }
-              }
-            }]
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values: [headers] })
         });
       }
 
       async function appendEventRow(payload) {
-        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + '/values/' + encodeURIComponent(EVENTS_SHEET_NAME + '!A:D') + ':append?valueInputOption=USER_ENTERED';
+        var url =
+          'https://sheets.googleapis.com/v4/spreadsheets/' +
+          sheetsConfig.spreadsheetId +
+          '/values/' +
+          encodeURIComponent(EVENTS_SHEET_NAME + '!A:D') +
+          ':append?valueInputOption=USER_ENTERED';
+
         await authorizedFetch(url, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             values: [[
               payload.timestamp,
@@ -567,7 +485,10 @@
 
       function buildPayload(target) {
         var label = target.getAttribute('data-track-label') || target.textContent.trim();
-        var category = target.getAttribute('data-track-category') || (target.classList.contains('sub-link') ? 'sub-link' : 'link');
+        var category =
+          target.getAttribute('data-track-category') ||
+          (target.classList.contains('sub-link') ? 'sub-link' : 'link');
+
         return {
           timestamp: new Date().toISOString(),
           label: label,
@@ -577,26 +498,48 @@
       }
 
       async function trackClick(event) {
+        var target = event.currentTarget;
+        var href = target.href;
+        var targetAttr = target.getAttribute('target');
+
+        event.preventDefault();
+
+        var payload = buildPayload(target);
+
         try {
-          var payload = buildPayload(event.currentTarget);
           await appendEventRow(payload);
         } catch (error) {
           console.error('[Sheets] Ошибка записи события', error);
+        }
+
+        if (href) {
+          if (targetAttr === '_blank') {
+            window.open(href, '_blank', 'noopener');
+          } else {
+            window.location.href = href;
+          }
         }
       }
 
       function bindTracking() {
         var linkSelector = '.links-list a, .contacts a';
         var anchors = document.querySelectorAll(linkSelector);
+        if (!anchors.length) {
+          console.warn('[Sheets] Не найдены ссылки для трекинга');
+          return;
+        }
+
         anchors.forEach(function (anchor) {
-          anchor.addEventListener('click', trackClick, { passive: true });
+          anchor.addEventListener('click', trackClick, { passive: false });
         });
+
+        console.log('[Sheets] Трекинг кликов подключен, элементов:', anchors.length);
       }
 
       function applySheetsConfig(config) {
-        sheetsConfig.spreadsheetId = config.spreadsheetId || '';
-        sheetsConfig.serviceAccountEmail = config.serviceAccountEmail || '';
-        sheetsConfig.privateKey = config.privateKey || '';
+        sheetsConfig.spreadsheetId = config.spreadsheetId || sheetsConfig.spreadsheetId;
+        sheetsConfig.serviceAccountEmail = config.serviceAccountEmail || sheetsConfig.serviceAccountEmail;
+        sheetsConfig.privateKey = config.privateKey || sheetsConfig.privateKey;
       }
 
       async function loadServiceAccountConfig() {
@@ -614,11 +557,6 @@
             privateKey: data.private_key || ''
           };
 
-          if (!config.spreadsheetId || !config.serviceAccountEmail || !config.privateKey) {
-            console.warn('[Sheets] В конфигурации не хватает обязательных полей');
-            return null;
-          }
-
           return config;
         } catch (error) {
           console.error('[Sheets] Ошибка загрузки конфигурации сервисного аккаунта', error);
@@ -629,16 +567,24 @@
       async function initSheetsLogging() {
         var config = await loadServiceAccountConfig();
         if (!config) {
+          console.warn('[Sheets] Конфиг не загружен, логирование выключено');
           return;
         }
 
         applySheetsConfig(config);
-        var eventsSheetId = await ensureSheetExists(EVENTS_SHEET_NAME);
-        if (!eventsSheetId) {
+
+        if (!sheetsConfig.spreadsheetId || !sheetsConfig.serviceAccountEmail || !sheetsConfig.privateKey) {
+          console.warn('[Sheets] Нет обязательных параметров для работы с таблицей');
           return;
         }
+
+        var eventsSheetId = await ensureSheetExists(EVENTS_SHEET_NAME);
+        if (!eventsSheetId) {
+          console.warn('[Sheets] Не удалось подготовить лист Events');
+          return;
+        }
+
         await writeHeadersIfEmpty(EVENTS_SHEET_NAME, ['Время', 'Кнопка/ссылка', 'URL', 'Категория']);
-        await setupDashboard(eventsSheetId);
         bindTracking();
       }
 
