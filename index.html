@@ -285,7 +285,7 @@
 
         return crypto.subtle.importKey(
           'pkcs8',
-          buffer,
+          buffer.buffer,
           {
             name: 'RSASSA-PKCS1-v1_5',
             hash: 'SHA-256'
@@ -361,32 +361,37 @@
           return null;
         }
 
-        var payload = createJwtPayload();
-        var unsignedJwt = buildUnsignedJwt(payload);
-        var signedJwt = await signJwt(unsignedJwt, privateKey);
-        var assertion = unsignedJwt + '.' + signedJwt;
+        try {
+          var payload = createJwtPayload();
+          var unsignedJwt = buildUnsignedJwt(payload);
+          var signedJwt = await signJwt(unsignedJwt, privateKey);
+          var assertion = unsignedJwt + '.' + signedJwt;
 
-        var response = await fetch('https://oauth2.googleapis.com/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: new URLSearchParams({
-            grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-            assertion: assertion
-          })
-        });
+          var response = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+              grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+              assertion: assertion
+            })
+          });
 
-        if (!response.ok) {
-          console.error('[Sheets] Ошибка получения токена', await response.text());
+          if (!response.ok) {
+            console.error('[Sheets] Ошибка получения токена', await response.text());
+            return null;
+          }
+
+          var data = await response.json();
+          var expiresInMs = (data.expires_in || 3600) * 1000;
+          tokenCache.token = data.access_token;
+          tokenCache.expiresAt = now + expiresInMs;
+          return tokenCache.token;
+        } catch (error) {
+          console.error('[Sheets] Ошибка подготовки JWT', error);
           return null;
         }
-
-        var data = await response.json();
-        var expiresInMs = (data.expires_in || 3600) * 1000;
-        tokenCache.token = data.access_token;
-        tokenCache.expiresAt = now + expiresInMs;
-        return tokenCache.token;
       }
 
       async function authorizedFetch(url, options) {
@@ -553,12 +558,31 @@
       }
 
       function applySheetsConfig(config) {
-        sheetsConfig.spreadsheetId = config.spreadsheetId || sheetsConfig.spreadsheetId;
-        sheetsConfig.serviceAccountEmail = config.serviceAccountEmail || sheetsConfig.serviceAccountEmail;
-        sheetsConfig.privateKey = config.privateKey || sheetsConfig.privateKey;
+        sheetsConfig.spreadsheetId = (config.spreadsheetId || sheetsConfig.spreadsheetId || '').trim();
+        sheetsConfig.serviceAccountEmail = (config.serviceAccountEmail || sheetsConfig.serviceAccountEmail || '').trim();
+        sheetsConfig.privateKey = normalizePrivateKey(config.privateKey || sheetsConfig.privateKey || '');
+      }
+
+      function readInlineConfig() {
+        var inlineConfigEl = document.querySelector('script[data-sheets-config]');
+        if (!inlineConfigEl) return null;
+
+        try {
+          return JSON.parse(inlineConfigEl.textContent || '{}');
+        } catch (error) {
+          console.error('[Sheets] Не удалось разобрать встроенный конфиг', error);
+          return null;
+        }
       }
 
       async function loadServiceAccountConfig() {
+        var inlineConfig = readInlineConfig();
+        if (inlineConfig) return inlineConfig;
+
+        if (window && window.SHEETS_CONFIG) {
+          return window.SHEETS_CONFIG;
+        }
+
         try {
           var response = await fetch(SHEETS_CONFIG_URL, { cache: 'no-store' });
           if (!response.ok) {
@@ -581,6 +605,11 @@
       }
 
       async function initSheetsLogging() {
+        if (!window.crypto || !window.crypto.subtle) {
+          console.warn('[Sheets] WebCrypto недоступен, логирование выключено');
+          return;
+        }
+
         var config = await loadServiceAccountConfig();
         if (!config) {
           console.warn('[Sheets] Конфиг не загружен, логирование выключено');
