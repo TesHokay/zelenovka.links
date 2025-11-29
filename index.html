@@ -241,404 +241,86 @@
     });
   </script>
 
-  <script>
-    (function () {
-      var SHEETS_CONFIG_URL = '/assets/service-account.json';
-      var EVENTS_SHEET_NAME = 'Events';
+<script>
+  (function () {
+    // ВСТАВЬ сюда URL веб-аппы из Apps Script
+    var API_URL = 'https://script.google.com/macros/s/AKfycbxWt6Jhb_Dgs8AMl0pHfF-P4Pv1UOHhV1-AjRAix3qiNDpZ5xuedh8AHIR0eEwmaWRm/exec';
 
-      var sheetsConfig = {
-        spreadsheetId: '12s-ytJMT6ifszRWrznhFZ-8d8OeeaaQYD-AbtpsiB9E',
-        serviceAccountEmail: '',
-        privateKey: ''
+    function buildPayload(target) {
+      var label =
+        target.getAttribute('data-track-label') ||
+        target.textContent.trim();
+
+      var category =
+        target.getAttribute('data-track-category') ||
+        (target.classList.contains('sub-link') ? 'sub-link' : 'link');
+
+      return {
+        timestamp: new Date().toISOString(),
+        label: label,
+        href: target.href || '',
+        category: category
       };
+    }
 
-      var tokenCache = {
-        token: null,
-        expiresAt: 0
-      };
+    function sendEvent(payload) {
+      var data = new URLSearchParams(payload);
 
-      function base64UrlEncode(buffer) {
-        var bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-        var binary = '';
-        for (var i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-      }
-
-      function stringToArrayBuffer(str) {
-        var encoder = new TextEncoder();
-        return encoder.encode(str).buffer;
-      }
-
-      function importPrivateKey(pem) {
-        var pemBody = pem.replace(/-----BEGIN PRIVATE KEY-----/, '')
-          .replace(/-----END PRIVATE KEY-----/, '')
-          .replace(/\r?\n/g, '')
-          .replace(/\s+/g, '');
-        var binary = atob(pemBody);
-        var len = binary.length;
-        var buffer = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-          buffer[i] = binary.charCodeAt(i);
-        }
-
-        return crypto.subtle.importKey(
-          'pkcs8',
-          buffer.buffer,
-          {
-            name: 'RSASSA-PKCS1-v1_5',
-            hash: 'SHA-256'
-          },
-          false,
-          ['sign']
-        );
-      }
-
-      function normalizePrivateKey(key) {
-        if (!key) return '';
-
-        var normalized = String(key).trim();
-
-        if (normalized.indexOf('\\n') !== -1) {
-          normalized = normalized.replace(/\\n/g, '\n');
-        }
-
-        var hasPemMarkers =
-          normalized.indexOf('BEGIN PRIVATE KEY') !== -1 &&
-          normalized.indexOf('END PRIVATE KEY') !== -1;
-
-        if (!hasPemMarkers) {
-          normalized =
-            '-----BEGIN PRIVATE KEY-----\n' + normalized + '\n-----END PRIVATE KEY-----';
-        }
-
-        return normalized;
-      }
-
-      function createJwtPayload() {
-        var now = Math.floor(Date.now() / 1000);
-        return {
-          iss: sheetsConfig.serviceAccountEmail,
-          scope: 'https://www.googleapis.com/auth/spreadsheets',
-          aud: 'https://oauth2.googleapis.com/token',
-          exp: now + 3600,
-          iat: now
-        };
-      }
-
-      function encodeSection(data) {
-        return base64UrlEncode(new TextEncoder().encode(JSON.stringify(data)));
-      }
-
-      function buildUnsignedJwt(payload) {
-        var header = {
-          alg: 'RS256',
-          typ: 'JWT'
-        };
-        return encodeSection(header) + '.' + encodeSection(payload);
-      }
-
-      async function signJwt(unsignedJwt, privateKeyPem) {
-        var key = await importPrivateKey(privateKeyPem);
-        var signature = await crypto.subtle.sign(
-          'RSASSA-PKCS1-v1_5',
-          key,
-          stringToArrayBuffer(unsignedJwt)
-        );
-        return base64UrlEncode(signature);
-      }
-
-      async function fetchAccessToken() {
-        var now = Date.now();
-        if (tokenCache.token && tokenCache.expiresAt > now + 60 * 1000) {
-          return tokenCache.token;
-        }
-
-        var privateKey = normalizePrivateKey(sheetsConfig.privateKey);
-        if (!privateKey || !sheetsConfig.spreadsheetId || !sheetsConfig.serviceAccountEmail) {
-          console.warn('[Sheets] Не заполнены настройки сервисного аккаунта/таблицы.');
-          return null;
-        }
-
+      // Нормальный вариант — sendBeacon
+      if (navigator.sendBeacon) {
         try {
-          var payload = createJwtPayload();
-          var unsignedJwt = buildUnsignedJwt(payload);
-          var signedJwt = await signJwt(unsignedJwt, privateKey);
-          var assertion = unsignedJwt + '.' + signedJwt;
-
-          var response = await fetch('https://oauth2.googleapis.com/token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-              grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-              assertion: assertion
-            })
-          });
-
-          if (!response.ok) {
-            console.error('[Sheets] Ошибка получения токена', await response.text());
-            return null;
-          }
-
-          var data = await response.json();
-          var expiresInMs = (data.expires_in || 3600) * 1000;
-          tokenCache.token = data.access_token;
-          tokenCache.expiresAt = now + expiresInMs;
-          return tokenCache.token;
-        } catch (error) {
-          console.error('[Sheets] Ошибка подготовки JWT', error);
-          return null;
-        }
-      }
-
-      async function authorizedFetch(url, options) {
-        var token = await fetchAccessToken();
-        if (!token) return null;
-
-        var opts = options || {};
-        opts.headers = Object.assign({}, opts.headers, {
-          Authorization: 'Bearer ' + token
-        });
-        return fetch(url, opts);
-      }
-
-      async function ensureSheetExists(title) {
-        var metaResponse = await authorizedFetch(
-          'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId
-        );
-        if (!metaResponse || !metaResponse.ok) {
-          console.error('[Sheets] Не удалось получить метаданные таблицы');
-          return null;
-        }
-        var meta = await metaResponse.json();
-        var sheet = (meta.sheets || []).find(function (s) {
-          return s.properties && s.properties.title === title;
-        });
-        if (sheet) {
-          return sheet.properties.sheetId;
-        }
-
-        var addResponse = await authorizedFetch(
-          'https://sheets.googleapis.com/v4/spreadsheets/' + sheetsConfig.spreadsheetId + ':batchUpdate',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              requests: [{
-                addSheet: {
-                  properties: {
-                    title: title,
-                    gridProperties: {
-                      frozenRowCount: 1
-                    }
-                  }
-                }
-              }]
-            })
-          }
-        );
-
-        if (!addResponse || !addResponse.ok) {
-          console.error('[Sheets] Не удалось создать лист', title);
-          return null;
-        }
-        var addData = await addResponse.json();
-        var replies = addData.replies || [];
-        var added = replies[0] && replies[0].addSheet ? replies[0].addSheet.properties : null;
-        return added ? added.sheetId : null;
-      }
-
-      async function writeHeadersIfEmpty(sheetName, headers) {
-        var readUrl =
-          'https://sheets.googleapis.com/v4/spreadsheets/' +
-          sheetsConfig.spreadsheetId +
-          '/values/' +
-          encodeURIComponent(sheetName + '!A1:A1');
-
-        var readResponse = await authorizedFetch(readUrl);
-        if (!readResponse || !readResponse.ok) return;
-
-        var readData = await readResponse.json();
-        if (readData.values && readData.values.length > 0) {
+          navigator.sendBeacon(API_URL, data);
           return;
+        } catch (e) {
+          console.warn('[ClickLog] sendBeacon error', e);
         }
-
-        var endColCode = String.fromCharCode(64 + headers.length);
-
-        var updateUrl =
-          'https://sheets.googleapis.com/v4/spreadsheets/' +
-          sheetsConfig.spreadsheetId +
-          '/values/' +
-          encodeURIComponent(sheetName + '!A1:' + endColCode + '1') +
-          '?valueInputOption=USER_ENTERED';
-
-        await authorizedFetch(updateUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ values: [headers] })
-        });
       }
 
-      async function appendEventRow(payload) {
-        var url =
-          'https://sheets.googleapis.com/v4/spreadsheets/' +
-          sheetsConfig.spreadsheetId +
-          '/values/' +
-          encodeURIComponent(EVENTS_SHEET_NAME + '!A:D') +
-          ':append?valueInputOption=USER_ENTERED';
-
-        await authorizedFetch(url, {
+      // Запасной — fetch без CORS, ответ нам не нужен
+      try {
+        fetch(API_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            values: [[
-              payload.timestamp,
-              payload.label,
-              payload.href,
-              payload.category
-            ]]
-          })
+          body: data,
+          mode: 'no-cors'
         });
+      } catch (e) {
+        console.error('[ClickLog] fetch error', e);
+      }
+    }
+
+    function handleClick(event) {
+      var target = event.currentTarget;
+      var href = target.href;
+      var targetAttr = target.getAttribute('target');
+
+      var payload = buildPayload(target);
+      sendEvent(payload);
+
+      // Никакого preventDefault — пусть ссылка ведёт себя как обычно
+      // (sendBeacon успеет улететь при уходе со страницы)
+    }
+
+    function bindTracking() {
+      var anchors = document.querySelectorAll('.links-list a, .contacts a');
+      if (!anchors.length) {
+        console.warn('[ClickLog] Нет элементов для трекинга');
+        return;
       }
 
-      function buildPayload(target) {
-        var label = target.getAttribute('data-track-label') || target.textContent.trim();
-        var category =
-          target.getAttribute('data-track-category') ||
-          (target.classList.contains('sub-link') ? 'sub-link' : 'link');
+      anchors.forEach(function (anchor) {
+        anchor.addEventListener('click', handleClick, { passive: true });
+      });
 
-        return {
-          timestamp: new Date().toISOString(),
-          label: label,
-          href: target.href || '',
-          category: category
-        };
-      }
+      console.log('[ClickLog] tracking bound, elements:', anchors.length);
+    }
 
-      async function trackClick(event) {
-        var target = event.currentTarget;
-        var href = target.href;
-        var targetAttr = target.getAttribute('target');
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindTracking);
+    } else {
+      bindTracking();
+    }
+  })();
+</script>
 
-        event.preventDefault();
-
-        var payload = buildPayload(target);
-
-        try {
-          await appendEventRow(payload);
-        } catch (error) {
-          console.error('[Sheets] Ошибка записи события', error);
-        }
-
-        if (href) {
-          if (targetAttr === '_blank') {
-            window.open(href, '_blank', 'noopener');
-          } else {
-            window.location.href = href;
-          }
-        }
-      }
-
-      function bindTracking() {
-        var linkSelector = '.links-list a, .contacts a';
-        var anchors = document.querySelectorAll(linkSelector);
-        if (!anchors.length) {
-          console.warn('[Sheets] Не найдены ссылки для трекинга');
-          return;
-        }
-
-        anchors.forEach(function (anchor) {
-          anchor.addEventListener('click', trackClick, { passive: false });
-        });
-
-        console.log('[Sheets] Трекинг кликов подключен, элементов:', anchors.length);
-      }
-
-      function applySheetsConfig(config) {
-        sheetsConfig.spreadsheetId = (config.spreadsheetId || sheetsConfig.spreadsheetId || '').trim();
-        sheetsConfig.serviceAccountEmail = (config.serviceAccountEmail || sheetsConfig.serviceAccountEmail || '').trim();
-        sheetsConfig.privateKey = normalizePrivateKey(config.privateKey || sheetsConfig.privateKey || '');
-      }
-
-      function readInlineConfig() {
-        var inlineConfigEl = document.querySelector('script[data-sheets-config]');
-        if (!inlineConfigEl) return null;
-
-        try {
-          return JSON.parse(inlineConfigEl.textContent || '{}');
-        } catch (error) {
-          console.error('[Sheets] Не удалось разобрать встроенный конфиг', error);
-          return null;
-        }
-      }
-
-      async function loadServiceAccountConfig() {
-        var inlineConfig = readInlineConfig();
-        if (inlineConfig) return inlineConfig;
-
-        if (window && window.SHEETS_CONFIG) {
-          return window.SHEETS_CONFIG;
-        }
-
-        try {
-          var response = await fetch(SHEETS_CONFIG_URL, { cache: 'no-store' });
-          if (!response.ok) {
-            console.warn('[Sheets] Файл конфигурации сервисного аккаунта недоступен');
-            return null;
-          }
-
-          var data = await response.json();
-          var config = {
-            spreadsheetId: data.spreadsheet_id || data.spreadsheetId || '',
-            serviceAccountEmail: data.client_email || data.service_account_email || '',
-            privateKey: data.private_key || ''
-          };
-
-          return config;
-        } catch (error) {
-          console.error('[Sheets] Ошибка загрузки конфигурации сервисного аккаунта', error);
-          return null;
-        }
-      }
-
-      async function initSheetsLogging() {
-        if (!window.crypto || !window.crypto.subtle) {
-          console.warn('[Sheets] WebCrypto недоступен, логирование выключено');
-          return;
-        }
-
-        var config = await loadServiceAccountConfig();
-        if (!config) {
-          console.warn('[Sheets] Конфиг не загружен, логирование выключено');
-          return;
-        }
-
-        applySheetsConfig(config);
-
-        if (!sheetsConfig.spreadsheetId || !sheetsConfig.serviceAccountEmail || !sheetsConfig.privateKey) {
-          console.warn('[Sheets] Нет обязательных параметров для работы с таблицей');
-          return;
-        }
-
-        var eventsSheetId = await ensureSheetExists(EVENTS_SHEET_NAME);
-        if (!eventsSheetId) {
-          console.warn('[Sheets] Не удалось подготовить лист Events');
-          return;
-        }
-
-        await writeHeadersIfEmpty(EVENTS_SHEET_NAME, ['Время', 'Кнопка/ссылка', 'URL', 'Категория']);
-        bindTracking();
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSheetsLogging);
-      } else {
-        initSheetsLogging();
-      }
-    })();
-  </script>
 </body>
 </html>
